@@ -10,29 +10,29 @@ interface BadgeProps {
 
 const variantStyles: Record<BadgeVariant, React.CSSProperties> = {
   default: {
-    backgroundColor: "rgba(197, 184, 212, 0.2)",
+    backgroundColor: "var(--accent-bg-subtle)",
     color: "var(--sl-lavender)",
-    border: "1px solid rgba(197, 184, 212, 0.35)",
+    border: "1px solid var(--accent-border-subtle)",
   },
   success: {
-    backgroundColor: "rgba(34, 197, 94, 0.15)",
-    color: "#86EFAC",
-    border: "1px solid rgba(34, 197, 94, 0.25)",
+    backgroundColor: "var(--status-success-bg)",
+    color: "var(--status-success-text)",
+    border: "1px solid var(--status-success-border)",
   },
   warning: {
-    backgroundColor: "rgba(245, 158, 11, 0.15)",
-    color: "#FCD34D",
-    border: "1px solid rgba(245, 158, 11, 0.25)",
+    backgroundColor: "var(--status-warning-bg)",
+    color: "var(--status-warning-text)",
+    border: "1px solid var(--status-warning-border)",
   },
   danger: {
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
-    color: "#FCA5A5",
-    border: "1px solid rgba(239, 68, 68, 0.25)",
+    backgroundColor: "var(--status-danger-bg)",
+    color: "var(--status-danger-text)",
+    border: "1px solid var(--status-danger-border)",
   },
   neutral: {
-    backgroundColor: "rgba(168, 165, 174, 0.15)",
+    backgroundColor: "var(--silver-bg-subtle)",
     color: "var(--sl-silver)",
-    border: "1px solid rgba(168, 165, 174, 0.25)",
+    border: "1px solid var(--silver-border-subtle)",
   },
 };
 

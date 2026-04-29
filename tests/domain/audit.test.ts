@@ -106,9 +106,9 @@ describe("writeAuditLog", () => {
     expect(client.auditLog.create).toHaveBeenCalledWith({ data: payload });
   });
 
-  it("does not throw when client.auditLog.create rejects", async () => {
-    const faultyClient = makeClient(() => Promise.reject(new Error("DB offline")));
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  it("rejects when client.auditLog.create fails so protected mutations fail closed", async () => {
+    const error = new Error("DB offline");
+    const faultyClient = makeClient(() => Promise.reject(error));
 
     const payload: AuditPayload = {
       actorType: "SYSTEM",
@@ -117,31 +117,7 @@ describe("writeAuditLog", () => {
       entityId: "evt_1",
     };
 
-    await expect(writeAuditLog(faultyClient, payload)).resolves.toBeUndefined();
-
-    consoleSpy.mockRestore();
-  });
-
-  it("logs the error to console.error when the client throws", async () => {
-    const error = new Error("DB offline");
-    const faultyClient = makeClient(() => Promise.reject(error));
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    const payload: AuditPayload = {
-      actorType: "SYSTEM",
-      action: "COMMISSION_STAGED",
-      entityType: "CommissionEvent",
-      entityId: "evt_2",
-    };
-
-    await writeAuditLog(faultyClient, payload);
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[audit]"),
-      error
-    );
-
-    consoleSpy.mockRestore();
+    await expect(writeAuditLog(faultyClient, payload)).rejects.toThrow(error);
   });
 });
 
@@ -186,15 +162,13 @@ describe("createAuditWriter", () => {
     expect(call.data.actorId).toBeUndefined();
   });
 
-  it("swallows errors from the underlying client (does not throw)", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const faultyClient = makeClient(() => Promise.reject(new Error("network error")));
+  it("propagates errors from the underlying client", async () => {
+    const error = new Error("network error");
+    const faultyClient = makeClient(() => Promise.reject(error));
     const audit = createAuditWriter(faultyClient);
 
     await expect(
       audit(systemActor, "SOME_ACTION", "SomeEntity", "id_1")
-    ).resolves.toBeUndefined();
-
-    consoleSpy.mockRestore();
+    ).rejects.toThrow(error);
   });
 });

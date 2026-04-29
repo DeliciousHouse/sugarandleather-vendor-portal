@@ -10,6 +10,24 @@
   --sl-silver: #A8A5AE;
   --sl-mist: #D8D3DE;
 
+  /* Status palette. These are semantic UI tokens, not brand accents. */
+  --status-success-bg: rgba(34, 197, 94, 0.15);
+  --status-success-text: #86EFAC;
+  --status-success-border: rgba(34, 197, 94, 0.25);
+  --status-warning-bg: rgba(245, 158, 11, 0.15);
+  --status-warning-text: #FCD34D;
+  --status-warning-border: rgba(245, 158, 11, 0.25);
+  --status-danger-bg: rgba(239, 68, 68, 0.15);
+  --status-danger-text: #FCA5A5;
+  --status-danger-border: rgba(239, 68, 68, 0.25);
+  --status-danger-strong-bg: #7F1D1D;
+
+  /* Brand alpha tokens */
+  --accent-bg-subtle: rgba(197, 184, 212, 0.2);
+  --accent-border-subtle: rgba(197, 184, 212, 0.35);
+  --silver-bg-subtle: rgba(168, 165, 174, 0.15);
+  --silver-border-subtle: rgba(168, 165, 174, 0.25);
+
   /* Semantic surfaces */
   --surface-root: var(--sl-obsidian);
   --surface-panel: var(--sl-charcoal);

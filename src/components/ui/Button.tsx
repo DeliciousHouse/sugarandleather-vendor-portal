@@ -26,7 +26,7 @@ const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
     border: "1px solid var(--border-dark)",
   },
   danger: {
-    backgroundColor: "#7F1D1D",
+    backgroundColor: "var(--status-danger-strong-bg)",
     color: "var(--sl-warm-white)",
     border: "1px solid transparent",
   },

@@ -59,18 +59,15 @@ export function buildAuditPayload(
 }
 
 /**
- * Writes an audit log entry via the injected client. Swallows all errors so
- * that a failure here never crashes the main request flow.
+ * Writes an audit log entry via the injected client. Required audit writes fail
+ * closed by default so legal/financial state changes cannot silently continue
+ * without an audit trail.
  */
 export async function writeAuditLog(
   client: AuditClient,
   payload: AuditPayload
 ): Promise<void> {
-  try {
-    await client.auditLog.create({ data: payload });
-  } catch (err) {
-    console.error("[audit] Failed to write audit log:", err);
-  }
+  await client.auditLog.create({ data: payload });
 }
 
 /**

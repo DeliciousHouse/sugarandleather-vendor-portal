@@ -34,7 +34,7 @@ export default function RootLayout({
       lang="en"
       className={`${cormorant.variable} ${inter.variable} ${courierPrime.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#0E0C0F] text-[#EDE8E1]">
+      <body className="min-h-full flex flex-col bg-[var(--sl-obsidian)] text-[var(--sl-cream)]">
         {children}
       </body>
     </html>

@@ -94,13 +94,13 @@ describe("StatusPill", () => {
     const el = screen.getByText("ACTIVE");
     // success badge has green text colour set via inline style
     expect(el).toBeInTheDocument();
-    expect(el).toHaveStyle({ color: "#86EFAC" });
+    expect(el).toHaveStyle({ color: "var(--status-success-text)" });
   });
 
   it("maps REJECTED to a danger badge", () => {
     render(<StatusPill status="REJECTED" />);
     const el = screen.getByText("REJECTED");
-    expect(el).toHaveStyle({ color: "#FCA5A5" });
+    expect(el).toHaveStyle({ color: "var(--status-danger-text)" });
   });
 
   it("maps PENDING_REVIEW to a neutral badge", () => {
@@ -129,7 +129,7 @@ describe("StatusPill", () => {
   it("maps INVITED to a warning badge", () => {
     render(<StatusPill status="INVITED" />);
     const el = screen.getByText("INVITED");
-    expect(el).toHaveStyle({ color: "#FCD34D" });
+    expect(el).toHaveStyle({ color: "var(--status-warning-text)" });
   });
 });
 
