@@ -384,4 +384,3 @@ export async function markNotificationRead(
     data: { status: "READ", readAt: new Date() },
   });
 }
-

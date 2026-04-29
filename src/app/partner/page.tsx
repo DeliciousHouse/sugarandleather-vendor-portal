@@ -166,4 +166,3 @@ export default async function PartnerDashboardPage() {
     </main>
   );
 }
-
