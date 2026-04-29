@@ -1,0 +1,32 @@
+:root {
+  /* Brand palette */
+  --sl-obsidian: #0E0C0F;
+  --sl-cream: #EDE8E1;
+  --sl-lavender: #C5B8D4;
+  --sl-charcoal: #2C2830;
+  --sl-deep-plum: #3D3347;
+  --sl-mid-gray: #6B6570;
+  --sl-warm-white: #F7F4F0;
+  --sl-silver: #A8A5AE;
+  --sl-mist: #D8D3DE;
+
+  /* Semantic surfaces */
+  --surface-root: var(--sl-obsidian);
+  --surface-panel: var(--sl-charcoal);
+  --surface-panel-hover: var(--sl-deep-plum);
+  --surface-cream: var(--sl-cream);
+  --surface-warm: var(--sl-warm-white);
+
+  /* Text */
+  --text-primary-dark: var(--sl-cream);
+  --text-secondary-dark: var(--sl-silver);
+  --text-primary-light: var(--sl-obsidian);
+  --text-secondary-light: var(--sl-mid-gray);
+
+  /* Accent */
+  --accent: var(--sl-lavender);
+
+  /* Borders */
+  --border-dark: rgba(237, 232, 225, 0.12);
+  --border-light: var(--sl-mist);
+}
