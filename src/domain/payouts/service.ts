@@ -64,7 +64,7 @@ export type PayoutDb = AuditClient & {
   };
   payoutBatch: {
     create: (args: AnyArgs) => Promise<PayoutBatchRow>;
-    findUnique: (args: AnyArgs) => Promise<(PayoutBatchRow & { lines?: PayoutLineRow[] }) | null>;
+    findUnique: (args: AnyArgs) => Promise<PayoutBatchRow | null>;
     update: (args: AnyArgs) => Promise<PayoutBatchRow>;
   };
   payoutLine: {
@@ -218,7 +218,6 @@ export async function markBatchPaid(
 
   const batch = await deps.db.payoutBatch.findUnique({
     where: { id: batchId },
-    include: { lines: true },
   });
   if (!batch) {
     throw new Error(`Payout batch not found: ${batchId}`);
@@ -232,7 +231,9 @@ export async function markBatchPaid(
     throw new Error(`Cannot mark a VOIDED payout batch as paid.`);
   }
 
-  const lines = batch.lines ?? [];
+  const lines = Array.isArray((batch as PayoutBatchRow & { lines?: PayoutLineRow[] }).lines)
+    ? (batch as PayoutBatchRow & { lines: PayoutLineRow[] }).lines
+    : await deps.db.payoutLine.findMany({ where: { payoutBatchId: batchId } });
   const paidAt = deps.now ? deps.now() : new Date();
 
   for (const line of lines) {

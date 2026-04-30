@@ -42,12 +42,10 @@ export type AdminDealDetail = AdminDealRow & {
 type AdminDealDb = {
   deal: {
     findMany: (args: AnyArgs) => Promise<AdminDealRow[]>;
-    findUnique: (args: AnyArgs) => Promise<
-      | (AdminDealRow & {
-          commissionEvents: CommissionEventSummary[];
-        })
-      | null
-    >;
+    findUnique: (args: AnyArgs) => Promise<AdminDealRow | null>;
+  };
+  commissionEvent: {
+    findMany: (args: AnyArgs) => Promise<CommissionEventSummary[]>;
   };
 };
 
@@ -68,25 +66,28 @@ export async function getAdminDealById(
   db: AdminDealDb,
   id: string
 ): Promise<AdminDealDetail | null> {
-  return db.deal.findUnique({
+  const deal = await db.deal.findUnique({
     where: { id },
-    include: {
-      commissionEvents: {
-        orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          kind: true,
-          status: true,
-          amountCents: true,
-          currency: true,
-          tierNameSnapshot: true,
-          percentBpsSnapshot: true,
-          flatAmountCentsSnapshot: true,
-          periodStart: true,
-          periodEnd: true,
-          payoutEligibleAt: true,
-        },
-      },
+  });
+  if (!deal) return null;
+
+  const commissionEvents = await db.commissionEvent.findMany({
+    where: { dealId: id },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      kind: true,
+      status: true,
+      amountCents: true,
+      currency: true,
+      tierNameSnapshot: true,
+      percentBpsSnapshot: true,
+      flatAmountCentsSnapshot: true,
+      periodStart: true,
+      periodEnd: true,
+      payoutEligibleAt: true,
     },
   });
+
+  return { ...deal, commissionEvents };
 }

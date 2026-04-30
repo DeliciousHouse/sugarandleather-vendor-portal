@@ -49,8 +49,12 @@ export type AdminPayableEventRow = {
 
 type AdminPayoutDb = {
   payoutBatch: {
-    findMany: (args: AnyArgs) => Promise<AdminPayoutBatchRow[]>;
-    findUnique: (args: AnyArgs) => Promise<AdminPayoutBatchDetail | null>;
+    findMany: (args: AnyArgs) => Promise<Omit<AdminPayoutBatchRow, "_count">[]>;
+    findUnique: (args: AnyArgs) => Promise<Omit<AdminPayoutBatchRow, "_count"> | null>;
+  };
+  payoutLine: {
+    count: (args: AnyArgs) => Promise<number>;
+    findMany: (args: AnyArgs) => Promise<AdminPayoutLineRow[]>;
   };
   commissionEvent: {
     findMany: (args: AnyArgs) => Promise<AdminPayableEventRow[]>;
@@ -62,28 +66,38 @@ export async function getAdminPayoutBatches(
   opts?: { status?: string; take?: number; skip?: number }
 ): Promise<AdminPayoutBatchRow[]> {
   const where = opts?.status ? { status: opts.status } : {};
-  return db.payoutBatch.findMany({
+  const batches = await db.payoutBatch.findMany({
     where,
     orderBy: { createdAt: "desc" },
     take: opts?.take ?? 50,
     skip: opts?.skip ?? 0,
-    include: { _count: { select: { lines: true } } },
   });
+
+  return Promise.all(
+    batches.map(async (batch) => ({
+      ...batch,
+      _count: {
+        lines: await db.payoutLine.count({ where: { payoutBatchId: batch.id } }),
+      },
+    }))
+  );
 }
 
 export async function getAdminPayoutBatchById(
   db: AdminPayoutDb,
   id: string
 ): Promise<AdminPayoutBatchDetail | null> {
-  return db.payoutBatch.findUnique({
+  const batch = await db.payoutBatch.findUnique({
     where: { id },
-    include: {
-      lines: {
-        orderBy: { createdAt: "asc" },
-      },
-      _count: { select: { lines: true } },
-    },
   });
+  if (!batch) return null;
+
+  const lines = await db.payoutLine.findMany({
+    where: { payoutBatchId: id },
+    orderBy: { createdAt: "asc" },
+  });
+
+  return { ...batch, lines, _count: { lines: lines.length } };
 }
 
 export async function getPayableEvents(

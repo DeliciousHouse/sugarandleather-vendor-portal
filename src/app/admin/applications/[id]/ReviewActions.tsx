@@ -9,6 +9,7 @@ import {
   rejectApplicationAction,
   approvePendingAgreementAction,
 } from "./actions";
+import { sendAgreementPacketAction } from "../../agreements/[id]/actions";
 
 interface ReviewActionsProps {
   app: Pick<ApplicationDetail, "id" | "status">;
@@ -25,8 +26,9 @@ export default function ReviewActions({ app }: ReviewActionsProps) {
     app.status === "SUBMITTED" || app.status === "IN_REVIEW";
   const canApprove =
     app.status === "SUBMITTED" || app.status === "IN_REVIEW";
+  const canSendPacket = app.status === "APPROVED_PENDING_AGREEMENT";
 
-  if (!canMarkInReview && !canReject && !canApprove) return null;
+  if (!canMarkInReview && !canReject && !canApprove && !canSendPacket) return null;
 
   function runAction(fn: () => Promise<{ error?: string }>) {
     setActionError(null);
@@ -117,6 +119,18 @@ export default function ReviewActions({ app }: ReviewActionsProps) {
             }
           >
             Approve — pending agreement
+          </Button>
+        )}
+        {canSendPacket && (
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={isPending}
+            onClick={() =>
+              runAction(() => sendAgreementPacketAction(app.id))
+            }
+          >
+            Send agreement packet
           </Button>
         )}
         {canReject && (
