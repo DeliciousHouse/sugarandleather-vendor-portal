@@ -1,0 +1,16 @@
+# Files exempted from token discipline because they will be redesigned in
+# later rollout phases. Each entry MUST be removed when the file is ported
+# to Editorial Obsidian. If you add an entry without a phase target,
+# you owe the reviewer an explanation.
+#
+# Format: one path per line, relative to repo root. Comments allowed.
+
+# Phase D (admin lists) — pre-redesign hex codes
+src/app/admin/tiers/page.tsx
+
+# Phase E (admin details) — pre-redesign hex codes
+src/app/admin/tiers/[id]/page.tsx
+src/app/admin/payouts/[id]/PayoutBatchActions.tsx
+
+# Phase D (tiers UI module) — pre-redesign hex codes
+src/components/tiers/TierRuleEditor.tsx

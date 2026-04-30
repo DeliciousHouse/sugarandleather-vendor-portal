@@ -1,6 +1,6 @@
 {
   "name": "slvp-next",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,8 @@
     "test": "NODE_ENV=test vitest run",
     "test:watch": "NODE_ENV=test vitest",
     "test:e2e": "playwright test",
-    "verify": "npm run lint && npm run test && npm run build",
+    "check:tokens": "bash scripts/check-tokens.sh",
+    "verify": "npm run check:tokens && npm run lint && npm run test && npm run build",
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
     "prisma:seed": "prisma db seed",
