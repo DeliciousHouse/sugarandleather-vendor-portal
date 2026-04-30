@@ -1,6 +1,6 @@
 # AGENTS.md — Sugar & Leather Vendor Portal
 
-This file governs parallel and sequential agents working in this repo.
+This file governs agents and contributors working in this repo.
 
 ## Project Commands
 
@@ -16,6 +16,21 @@ This file governs parallel and sequential agents working in this repo.
 | `npm run prisma:validate` | Validate Prisma schema |
 | `npm run prisma:seed` | Seed default data |
 | `npx prisma migrate dev` | Apply schema migrations |
+
+If `npm run build` fails because `node_modules` is a symlink (git worktree), use `npx next build --webpack`.
+
+## Before Marking Any Task Complete
+
+Run these four commands and ensure they all pass:
+
+```bash
+npm run prisma:validate
+npm run lint
+npm run test
+npx next build --webpack
+```
+
+If the build modifies `next-env.d.ts`, restore it with `git checkout next-env.d.ts` before committing.
 
 ## Architecture Rules
 
@@ -41,6 +56,28 @@ This file governs parallel and sequential agents working in this repo.
 - All tokens are in `src/styles/tokens.css`. Do NOT hardcode hex values in components.
 - Logo: use Cream logo on dark, Obsidian logo on light. Never stretch, rotate, or add effects.
 
+## Agent Guidance
+
+### Run tests before finishing
+
+Always run `npm run test` before marking any task complete. Domain helpers and services must have Vitest tests. Component tests use React Testing Library.
+
+### Do not edit partner referral records directly
+
+Partner-submitted referrals are immutable after creation. Corrections are admin-only notes or admin field adjustments, each with an audit log entry. Never write code that lets partners edit their own referrals.
+
+### Preserve brand tokens
+
+Do not hardcode color hex values or font names in component files. Use CSS custom properties from `src/styles/tokens.css`. Adding new hardcoded values bypasses the brand contract and will fail design review.
+
+### Do not edit `prisma/schema.prisma` without approval
+
+The Prisma schema is the contract for all workstreams. Breaking changes require stopping parallel agents, parent agent review and approval, re-running migrations and seed, and resuming agents from the updated contract.
+
+### Avoid direct partner account activation
+
+Partner accounts become `ACTIVE` only after an admin marks an agreement `SIGNED`. Never set `AccountStatus` to `ACTIVE` through any path that bypasses the agreement confirmation step.
+
 ## Testing Rules
 
 - Write tests BEFORE or WITH implementation (TDD for domain helpers and services).
@@ -50,6 +87,16 @@ This file governs parallel and sequential agents working in this repo.
 - Run `npm run test` before marking any task complete.
 - Do NOT mock the Prisma client for integration tests; use a real test DB.
 - Access-control helpers must have unit tests covering admin-allowed, partner-denied-admin, inactive-partner-denied, active-partner-allowed.
+
+## Module Pattern
+
+```
+src/domain/<module>/schema.ts       Zod validation
+src/domain/<module>/service.ts      mutations and business rules
+src/domain/<module>/queries.ts      read models for pages/tables
+src/domain/<module>/types.ts        shared DTOs
+src/app/**/actions.ts               thin server action wrappers
+```
 
 ## Schema Freeze Warning
 
@@ -62,16 +109,6 @@ The Prisma schema is the contract for all workstreams. Changes to schema or shar
 4. Resuming parallel agents from the updated contract.
 
 Violating this rule causes merge conflicts and broken migrations across lanes.
-
-## Module Pattern
-
-```
-src/domain/<module>/schema.ts       Zod validation
-src/domain/<module>/service.ts      mutations and business rules
-src/domain/<module>/queries.ts      read models for pages/tables
-src/domain/<module>/types.ts        shared DTOs
-src/app/**/actions.ts               thin server action wrappers
-```
 
 ## Financial Integrity Rules
 
