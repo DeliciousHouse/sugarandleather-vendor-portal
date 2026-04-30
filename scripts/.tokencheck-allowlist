@@ -5,12 +5,9 @@
 #
 # Format: one path per line, relative to repo root. Comments allowed.
 
-# Phase D (admin lists) — pre-redesign hex codes
-src/app/admin/tiers/page.tsx
-
-# Phase E (admin details) — pre-redesign hex codes
-src/app/admin/tiers/[id]/page.tsx
-src/app/admin/payouts/[id]/PayoutBatchActions.tsx
-
-# Phase D (tiers UI module) — pre-redesign hex codes
+# TierRuleEditor uses inline hex for status indicators. This is a complex
+# stateful editor — tracked for focused cleanup, out of scope for the visual
+# port. The check-tokens.sh gate filters by file path, so allowlisting just
+# this file is sufficient; the parent tiers detail page that renders it does
+# NOT need its own allowlist entry.
 src/components/tiers/TierRuleEditor.tsx

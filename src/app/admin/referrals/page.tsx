@@ -4,9 +4,17 @@ import { redirect } from "next/navigation";
 import { getRequiredAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAdminReferrals } from "@/domain/referrals/queries";
-import StatusPill from "@/components/ui/StatusPill";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
+import EditorialTable, {
+  type ColumnDef,
+} from "@/components/brand/EditorialTable";
+import EditorialStatusPill from "@/components/brand/EditorialStatusPill";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Referrals · Admin · Sugar & Leather",
+};
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING_REVIEW: "Pending review",
@@ -15,8 +23,89 @@ const STATUS_LABELS: Record<string, string> = {
   CONVERTED: "Converted",
   LOST: "Lost",
   FIRST_ATTRIBUTED: "First attributed",
-  DUPLICATE_NO_CREDIT: "Duplicate — no credit",
+  DUPLICATE_NO_CREDIT: "Duplicate · no credit",
 };
+
+type Row = {
+  id: string;
+  leadName: string;
+  leadEmail: string | null;
+  partnerId: string;
+  attributionStatus: string;
+  status: string;
+  submittedAt: Date | string;
+};
+
+const columns: ColumnDef<Row & Record<string, unknown>>[] = [
+  {
+    key: "leadName",
+    header: "Lead",
+    render: (row) => (
+      <div className="flex flex-col">
+        <span className="text-[var(--sl-cream)]">{row.leadName}</span>
+        {row.leadEmail ? (
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+            {row.leadEmail}
+          </span>
+        ) : null}
+      </div>
+    ),
+  },
+  {
+    key: "partnerId",
+    header: "Partner",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.partnerId}
+      </span>
+    ),
+  },
+  {
+    key: "attributionStatus",
+    header: "Attribution",
+    render: (row) => (
+      <EditorialStatusPill
+        status={row.attributionStatus}
+        label={STATUS_LABELS[row.attributionStatus] ?? row.attributionStatus}
+        tone={row.attributionStatus === "FIRST_ATTRIBUTED" ? "success" : "neutral"}
+      />
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <EditorialStatusPill
+        status={row.status}
+        label={STATUS_LABELS[row.status] ?? row.status}
+      />
+    ),
+  },
+  {
+    key: "submittedAt",
+    header: "Submitted",
+    align: "right",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {new Date(row.submittedAt).toLocaleDateString()}
+      </span>
+    ),
+  },
+  {
+    key: "id",
+    header: "",
+    align: "right",
+    render: (row) => (
+      <Link
+        href={`/admin/referrals/${row.id}`}
+        className="group inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--sl-cream)] hover:text-[var(--sl-lavender)] transition-colors"
+      >
+        <span>Review</span>
+        <span aria-hidden className="h-px w-6 bg-[var(--sl-cream)] transition-all group-hover:w-10 group-hover:bg-[var(--sl-lavender)]" />
+      </Link>
+    ),
+  },
+];
 
 export default async function AdminReferralsPage() {
   try {
@@ -26,136 +115,40 @@ export default async function AdminReferralsPage() {
   }
 
   const referrals = await getAdminReferrals(
-    prisma as unknown as Parameters<typeof getAdminReferrals>[0]
+    prisma as unknown as Parameters<typeof getAdminReferrals>[0],
   );
 
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--surface-root)",
-        padding: "2rem",
-      }}
-    >
-      <div style={{ maxWidth: "80rem", margin: "0 auto" }}>
-        <div style={{ marginBottom: "2rem" }}>
-          <h1
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "2rem",
-              fontWeight: 700,
-              color: "var(--sl-cream)",
-              marginBottom: "0.25rem",
-            }}
-          >
-            Referral queue
-          </h1>
-          <p style={{ fontSize: "0.9375rem", color: "var(--sl-silver)" }}>
-            Review and approve referrals. Duplicate/no-credit referrals cannot be approved as counting.
-          </p>
-        </div>
+  const total = referrals.length;
+  const pending = referrals.filter((r) => r.status === "PENDING_REVIEW").length;
 
-        <div
-          style={{
-            width: "100%",
-            overflowX: "auto",
-            borderRadius: "0.75rem",
-            border: "1px solid var(--border-dark)",
-          }}
-        >
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
-            <thead>
-              <tr
-                style={{
-                  backgroundColor: "var(--sl-obsidian)",
-                  borderBottom: "1px solid var(--border-dark)",
-                }}
-              >
-                {["Lead", "Partner", "Attribution", "Status", "Submitted", ""].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: "0.75rem 1rem",
-                      textAlign: "left",
-                      fontWeight: 600,
-                      color: "var(--sl-silver)",
-                      letterSpacing: "0.025em",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {referrals.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    style={{
-                      padding: "3rem 1rem",
-                      textAlign: "center",
-                      color: "var(--sl-mid-gray)",
-                    }}
-                  >
-                    No referrals yet.
-                  </td>
-                </tr>
-              ) : (
-                referrals.map((row, i) => (
-                  <tr
-                    key={row.id}
-                    style={{
-                      backgroundColor:
-                        i % 2 === 0 ? "var(--surface-panel)" : "var(--sl-charcoal)",
-                      borderBottom: "1px solid var(--border-dark)",
-                    }}
-                  >
-                    <td style={{ padding: "0.75rem 1rem", color: "var(--sl-cream)" }}>
-                      <div style={{ fontWeight: 500 }}>{row.leadName}</div>
-                      {row.leadEmail && (
-                        <div style={{ fontSize: "0.8125rem", color: "var(--sl-silver)" }}>
-                          {row.leadEmail}
-                        </div>
-                      )}
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)" }}>
-                      {row.partnerId}
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem" }}>
-                      <StatusPill
-                        status={row.attributionStatus}
-                        label={STATUS_LABELS[row.attributionStatus] ?? row.attributionStatus}
-                      />
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem" }}>
-                      <StatusPill
-                        status={row.status}
-                        label={STATUS_LABELS[row.status] ?? row.status}
-                      />
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)", whiteSpace: "nowrap" }}>
-                      {new Date(row.submittedAt).toLocaleDateString()}
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem" }}>
-                      <Link
-                        href={`/admin/referrals/${row.id}`}
-                        style={{
-                          fontSize: "0.875rem",
-                          color: "var(--sl-lavender)",
-                          textDecoration: "none",
-                        }}
-                      >
-                        Review →
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+  const rows: (Row & Record<string, unknown>)[] = referrals.map((r) => ({
+    id: r.id,
+    leadName: r.leadName,
+    leadEmail: r.leadEmail ?? null,
+    partnerId: r.partnerId,
+    attributionStatus: r.attributionStatus,
+    status: r.status,
+    submittedAt: r.submittedAt,
+  }));
+
+  return (
+    <EditorialPageShell
+      sectionLabel="02 / Referrals"
+      crumbs={[
+        { label: "Admin", href: "/admin" },
+        { label: "Referrals" },
+      ]}
+      eyebrow="Review queue"
+      headline={total === 0 ? "Queue is clear" : `${total} ${total === 1 ? "referral" : "referrals"}`}
+      subheadline={pending > 0 ? `${pending} pending review` : undefined}
+      mainChildren={
+        <EditorialTable
+          columns={columns}
+          data={rows}
+          rowKey={(row) => row.id}
+          emptyMessage="No referrals yet."
+        />
+      }
+    />
   );
 }

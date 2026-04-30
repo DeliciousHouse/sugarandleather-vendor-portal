@@ -1,5 +1,5 @@
 import React from "react";
-import StatusPill from "@/components/ui/StatusPill";
+import EditorialStatusPill from "@/components/brand/EditorialStatusPill";
 
 export type NotificationItem = {
   id: string;
@@ -38,110 +38,56 @@ export default function NotificationList({
 }: NotificationListProps) {
   if (notifications.length === 0) {
     return (
-      <p
-        style={{
-          padding: "2rem 0",
-          textAlign: "center",
-          color: "var(--sl-mid-gray)",
-          fontSize: "0.9375rem",
-        }}
-      >
+      <p className="border-t border-[var(--border-dark)] py-12 text-center font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--sl-silver)]">
         {emptyMessage}
       </p>
     );
   }
 
   return (
-    <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-      {notifications.map((n) => (
-        <li
-          key={n.id}
-          style={{
-            display: "flex",
-            gap: "1rem",
-            padding: "1rem 1.25rem",
-            borderBottom: "1px solid var(--border-dark)",
-            backgroundColor:
-              n.status === "READ" || n.status === "DISMISSED"
-                ? "transparent"
-                : "var(--surface-panel)",
-          }}
-        >
-          {/* Unread indicator */}
-          <div
-            style={{
-              flexShrink: 0,
-              width: "0.5rem",
-              height: "0.5rem",
-              borderRadius: "50%",
-              marginTop: "0.4rem",
-              backgroundColor:
-                n.status === "READ" || n.status === "DISMISSED"
-                  ? "transparent"
-                  : "var(--sl-lavender)",
-            }}
-            aria-hidden="true"
-          />
-
-          <div style={{ flex: 1, minWidth: 0 }}>
+    <ul className="flex flex-col">
+      {notifications.map((n) => {
+        const unread = n.status !== "READ" && n.status !== "DISMISSED";
+        return (
+          <li
+            key={n.id}
+            className="flex gap-6 border-b border-[var(--border-dark)] py-6 last:border-b-0"
+          >
             <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                gap: "0.75rem",
-                marginBottom: "0.25rem",
-              }}
-            >
-              <span
-                style={{
-                  fontWeight: 600,
-                  fontSize: "0.9375rem",
-                  color: "var(--sl-cream)",
-                  lineHeight: 1.4,
-                }}
-              >
-                {n.title}
-              </span>
-              <StatusPill
-                status={n.status}
-                label={STATUS_LABELS[n.status] ?? n.status}
-              />
-            </div>
-
-            <p
-              style={{
-                margin: "0 0 0.5rem",
-                fontSize: "0.875rem",
-                color: "var(--sl-silver)",
-                lineHeight: 1.5,
-              }}
-            >
-              {n.body}
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "1rem",
-                fontSize: "0.8125rem",
-                color: "var(--sl-mid-gray)",
-              }}
-            >
-              <span>{CHANNEL_LABELS[n.channel] ?? n.channel}</span>
-              {n.entityType && (
-                <span>
-                  {n.entityType}
-                  {n.entityId ? ` · ${n.entityId}` : ""}
+              aria-hidden
+              className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${
+                unread ? "bg-[var(--sl-lavender)]" : "bg-transparent"
+              }`}
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <span className="font-heading text-lg leading-tight text-[var(--sl-cream)]">
+                  {n.title}
                 </span>
-              )}
-              <time dateTime={n.createdAt.toISOString()}>
-                {new Date(n.createdAt).toLocaleString()}
-              </time>
+                <EditorialStatusPill
+                  status={n.status}
+                  label={STATUS_LABELS[n.status] ?? n.status}
+                />
+              </div>
+              <p className="mt-2 font-body text-sm leading-relaxed text-[var(--sl-silver)]">
+                {n.body}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+                <span>{CHANNEL_LABELS[n.channel] ?? n.channel}</span>
+                {n.entityType ? (
+                  <span>
+                    {n.entityType}
+                    {n.entityId ? ` · ${n.entityId}` : ""}
+                  </span>
+                ) : null}
+                <time dateTime={n.createdAt.toISOString()}>
+                  {new Date(n.createdAt).toLocaleString()}
+                </time>
+              </div>
             </div>
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   );
 }

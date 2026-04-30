@@ -1,42 +1,43 @@
+import React from "react";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
 import ApplicationForm from "@/components/applications/ApplicationForm";
 import { submitApplicationAction } from "./actions";
 
 export const metadata = {
-  title: "Apply to Partner — Sugar & Leather AI",
+  title: "Apply · Partner program · Sugar & Leather",
   description:
-    "Apply to the Sugar & Leather affiliate and vendor partner program.",
+    "Apply to the Sugar & Leather AI affiliate and vendor partner program.",
 };
 
 export default function ApplyPage() {
   return (
-    <main
-      className="min-h-screen py-16 px-4"
-      style={{ backgroundColor: "var(--surface-root)" }}
-    >
-      <div className="max-w-2xl mx-auto">
-        <header className="mb-10">
-          <h1
-            className="text-4xl font-bold mb-3"
-            style={{
-              fontFamily: "var(--font-heading)",
-              color: "var(--sl-cream)",
-            }}
-          >
-            Partner with Sugar &amp; Leather AI
-          </h1>
-          <p style={{ color: "var(--sl-silver)" }}>
-            We partner with consultants, educators, content creators, and
-            advisors who share our belief that AI should feel human. If that
-            sounds like you, apply below.
+    <EditorialPageShell
+      sectionLabel="01 / Apply"
+      eyebrow="Partner program"
+      headline={
+        <>
+          Partner with{" "}
+          <span className="relative inline-block">
+            us
+            <span
+              aria-hidden
+              className="absolute -bottom-2 left-0 h-[3px] w-full bg-[var(--sl-lavender)]"
+            />
+          </span>
+        </>
+      }
+      subheadline="Reviewed by a person, not a funnel"
+      mainChildren={
+        <div className="max-w-2xl">
+          <p className="mb-12 max-w-xl font-body text-base leading-relaxed text-[var(--sl-silver)]">
+            We work with consultants, educators, content creators, and advisors
+            who share our belief that AI should feel human. If that sounds like
+            you, the form below is the only step. Every application is read by
+            our team. We respond to fits within 5–7 business days.
           </p>
-          <p className="text-sm mt-3" style={{ color: "var(--sl-mid-gray)" }}>
-            All applications are reviewed manually. We will reach out if your
-            application is a fit.
-          </p>
-        </header>
-
-        <ApplicationForm action={submitApplicationAction} />
-      </div>
-    </main>
+          <ApplicationForm action={submitApplicationAction} />
+        </div>
+      }
+    />
   );
 }

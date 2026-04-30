@@ -1,6 +1,8 @@
 "use client";
 
+import React from "react";
 import { useActionState } from "react";
+import EditorialField from "@/components/brand/EditorialField";
 import Button from "@/components/ui/Button";
 
 export type ApplicationFormState = {
@@ -23,127 +25,52 @@ const PROMOTION_CHANNEL_OPTIONS = [
 interface ApplicationFormProps {
   action: (
     prevState: ApplicationFormState,
-    formData: FormData
+    formData: FormData,
   ) => Promise<ApplicationFormState>;
 }
 
+const inputClass =
+  "w-full bg-transparent py-2 font-body text-base text-[var(--sl-cream)] placeholder:text-[var(--sl-silver)]/50 focus:outline-none";
+const textareaClass = `${inputClass} min-h-24 resize-y`;
+
 function SuccessView() {
   return (
-    <div
-      className="rounded-xl border p-10 text-center"
-      style={{
-        backgroundColor: "var(--surface-panel)",
-        borderColor: "var(--border-dark)",
-      }}
-    >
-      <div
-        className="inline-flex h-12 w-12 items-center justify-center rounded-full mb-6"
-        style={{ backgroundColor: "var(--accent-bg-subtle)" }}
-      >
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          style={{ color: "var(--sl-lavender)" }}
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 13l4 4L19 7"
-          />
-        </svg>
-      </div>
-      <h2
-        className="text-2xl font-bold mb-3"
-        style={{ fontFamily: "var(--font-heading)", color: "var(--sl-cream)" }}
-      >
-        Application submitted
-      </h2>
-      <p
-        className="mb-2 max-w-md mx-auto"
-        style={{ color: "var(--sl-silver)" }}
-      >
-        Thank you for applying to the Sugar &amp; Leather partner program.
+    <div className="border-t border-[var(--sl-cream)] pt-12">
+      <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--sl-lavender)]">
+        Submitted
       </p>
-      <p
-        className="text-sm max-w-md mx-auto"
-        style={{ color: "var(--sl-mid-gray)" }}
-      >
-        Our team reviews every application manually. If your application is a
-        good fit, we will reach out within 5&ndash;7 business days with next
-        steps. You will not receive an automated confirmation email.
+      <h2 className="mt-6 font-heading text-4xl text-[var(--sl-cream)] leading-[1.05]">
+        Thank you.
+      </h2>
+      <p className="mt-6 max-w-xl font-body text-base leading-relaxed text-[var(--sl-silver)]">
+        Every application is read by a person on our team. If your work is a
+        fit, we will reach out within 5–7 business days with next steps. There
+        is no automated confirmation email.
       </p>
     </div>
   );
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <h2
-      className="text-lg font-semibold mb-4 pb-2 border-b"
-      style={{
-        fontFamily: "var(--font-heading)",
-        color: "var(--sl-cream)",
-        borderColor: "var(--border-dark)",
-      }}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function Field({
+function SectionLabel({
+  index,
   label,
-  htmlFor,
-  required,
-  children,
+  id,
 }: {
+  index: string;
   label: string;
-  htmlFor: string;
-  required?: boolean;
-  children: React.ReactNode;
+  id?: string;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={htmlFor}
-        className="text-sm font-medium"
-        style={{ color: "var(--sl-silver)" }}
-      >
+    <div className="mb-6 flex items-baseline gap-4 border-b border-[var(--border-dark)] pb-3">
+      <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]">
+        {index}
+      </span>
+      <h2 id={id} className="font-heading text-xl text-[var(--sl-cream)]">
         {label}
-        {required && (
-          <span
-            className="ml-1"
-            style={{ color: "var(--sl-lavender)" }}
-            aria-hidden="true"
-          >
-            *
-          </span>
-        )}
-      </label>
-      {children}
+      </h2>
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  backgroundColor: "var(--sl-obsidian)",
-  color: "var(--sl-cream)",
-  border: "1px solid var(--border-dark)",
-  borderRadius: "6px",
-  padding: "10px 12px",
-  fontSize: "14px",
-  width: "100%",
-};
-
-const textareaStyle: React.CSSProperties = {
-  ...inputStyle,
-  resize: "vertical",
-  minHeight: "96px",
-};
 
 export default function ApplicationForm({ action }: ApplicationFormProps) {
   const [state, formAction, isPending] = useActionState(action, {
@@ -156,205 +83,192 @@ export default function ApplicationForm({ action }: ApplicationFormProps) {
 
   return (
     <form action={formAction} noValidate aria-label="Partner application form">
-      {state.error && (
+      {state.error ? (
         <div
           role="alert"
-          className="rounded-lg border p-4 mb-6 text-sm"
-          style={{
-            backgroundColor: "var(--status-danger-bg)",
-            borderColor: "var(--status-danger-border)",
-            color: "var(--status-danger-text)",
-          }}
+          className="mb-8 border-l-2 border-[var(--status-danger-text)] pl-4 font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--status-danger-text)]"
         >
           {state.error}
         </div>
-      )}
+      ) : null}
 
-      <div className="flex flex-col gap-8">
-        {/* Section 1 — Personal information */}
+      <div className="flex flex-col gap-12">
         <section aria-labelledby="section-personal">
-          <SectionHeading>
-            <span id="section-personal">Personal information</span>
-          </SectionHeading>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Full name" htmlFor="fullName" required>
+          <SectionLabel
+            index="01"
+            label="Personal information"
+            id="section-personal"
+          />
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+            <EditorialField label="Full name" htmlFor="fullName" required>
               <input
-                id="fullName"
                 name="fullName"
                 type="text"
                 required
                 autoComplete="name"
-                style={inputStyle}
+                className={inputClass}
               />
-            </Field>
-            <Field label="Email address" htmlFor="email" required>
+            </EditorialField>
+            <EditorialField label="Email address" htmlFor="email" required>
               <input
-                id="email"
                 name="email"
                 type="email"
                 required
                 autoComplete="email"
-                style={inputStyle}
+                className={inputClass}
               />
-            </Field>
-            <Field label="Phone number" htmlFor="phone">
+            </EditorialField>
+            <EditorialField label="Phone number" htmlFor="phone">
               <input
-                id="phone"
                 name="phone"
                 type="tel"
                 autoComplete="tel"
-                style={inputStyle}
+                className={inputClass}
               />
-            </Field>
+            </EditorialField>
           </div>
         </section>
 
-        {/* Section 2 — Company and location */}
         <section aria-labelledby="section-company">
-          <SectionHeading>
-            <span id="section-company">Company and location</span>
-          </SectionHeading>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Company or organization" htmlFor="company">
+          <SectionLabel
+            index="02"
+            label="Company and location"
+            id="section-company"
+          />
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+            <EditorialField label="Company or organization" htmlFor="company">
               <input
-                id="company"
                 name="company"
                 type="text"
                 autoComplete="organization"
-                style={inputStyle}
+                className={inputClass}
               />
-            </Field>
-            <Field label="Country" htmlFor="country" required>
+            </EditorialField>
+            <EditorialField label="Country" htmlFor="country" required>
               <input
-                id="country"
                 name="country"
                 type="text"
                 required
                 autoComplete="country-name"
-                style={inputStyle}
+                className={inputClass}
               />
-            </Field>
+            </EditorialField>
           </div>
         </section>
 
-        {/* Section 3 — Promotion channels */}
         <section aria-labelledby="section-channels">
-          <SectionHeading>
-            <span id="section-channels">Promotion channels</span>
-          </SectionHeading>
-          <p className="text-sm mb-4" style={{ color: "var(--sl-mid-gray)" }}>
-            Select all channels you use to reach your audience. Choose at least
-            one.
+          <SectionLabel
+            index="03"
+            label="Promotion channels"
+            id="section-channels"
+          />
+          <p className="mb-6 max-w-xl font-body text-sm text-[var(--sl-silver)]">
+            Where do you reach your audience? Select every channel that
+            applies.
           </p>
           <div
-            className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+            className="grid grid-cols-1 gap-2 sm:grid-cols-2"
             role="group"
             aria-label="Promotion channels"
           >
             {PROMOTION_CHANNEL_OPTIONS.map((opt) => (
               <label
                 key={opt.value}
-                className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors"
-                style={{
-                  borderColor: "var(--border-dark)",
-                  backgroundColor: "var(--sl-obsidian)",
-                  color: "var(--sl-cream)",
-                }}
+                className="flex items-center gap-3 border-t border-[var(--border-dark)] py-3 cursor-pointer transition-colors hover:bg-[var(--sl-charcoal)]/50"
               >
                 <input
                   type="checkbox"
                   name="promotionChannels"
                   value={opt.value}
-                  className="h-4 w-4 rounded"
-                  style={{ accentColor: "var(--sl-lavender)" }}
+                  className="h-4 w-4 rounded-sm border border-[var(--border-dark)]"
+                  style={{ accentColor: "var(--sl-cream)" }}
                 />
-                <span className="text-sm">{opt.label}</span>
+                <span className="font-body text-sm text-[var(--sl-cream)]">
+                  {opt.label}
+                </span>
               </label>
             ))}
           </div>
         </section>
 
-        {/* Section 4 — Experience and audience */}
         <section aria-labelledby="section-experience">
-          <SectionHeading>
-            <span id="section-experience">Experience and audience</span>
-          </SectionHeading>
-          <div className="flex flex-col gap-4">
-            <Field
+          <SectionLabel
+            index="04"
+            label="Experience and audience"
+            id="section-experience"
+          />
+          <div className="flex flex-col gap-8">
+            <EditorialField
               label="AI and technology experience"
               htmlFor="aiTechExperience"
               required
             >
               <textarea
-                id="aiTechExperience"
                 name="aiTechExperience"
                 required
-                placeholder="Describe your background with AI, ML, or technology tools and platforms"
-                style={textareaStyle}
+                placeholder="Your background with AI, ML, or technology tools"
+                className={textareaClass}
               />
-            </Field>
-            <Field label="Your audience" htmlFor="audience" required>
+            </EditorialField>
+            <EditorialField label="Your audience" htmlFor="audience" required>
               <textarea
-                id="audience"
                 name="audience"
                 required
-                placeholder="Who is your audience? Include size, industry, seniority, and why they care about AI"
-                style={textareaStyle}
+                placeholder="Who they are, how many, why they care about AI"
+                className={textareaClass}
               />
-            </Field>
+            </EditorialField>
           </div>
         </section>
 
-        {/* Section 5 — Subjective questions */}
         <section aria-labelledby="section-questions">
-          <SectionHeading>
-            <span id="section-questions">A few more questions</span>
-          </SectionHeading>
-          <div className="flex flex-col gap-4">
-            <Field
+          <SectionLabel
+            index="05"
+            label="A few more questions"
+            id="section-questions"
+          />
+          <div className="flex flex-col gap-8">
+            <EditorialField
               label="Why do you want to partner with Sugar & Leather AI?"
               htmlFor="whyPartner"
               required
             >
               <textarea
-                id="whyPartner"
                 name="whyPartner"
                 required
-                placeholder="Tell us what draws you to our mission and products"
-                style={textareaStyle}
+                placeholder="What draws you to our mission and products"
+                className={textareaClass}
               />
-            </Field>
-            <Field
+            </EditorialField>
+            <EditorialField
               label="How do you plan to promote Aries AI?"
               htmlFor="promotionStrategy"
               required
             >
               <textarea
-                id="promotionStrategy"
                 name="promotionStrategy"
                 required
-                placeholder="Describe your strategy, content ideas, or outreach approach"
-                style={textareaStyle}
+                placeholder="Strategy, content ideas, outreach approach"
+                className={textareaClass}
               />
-            </Field>
-            <Field
+            </EditorialField>
+            <EditorialField
               label="Why is your audience a good fit for Aries AI?"
               htmlFor="audienceFit"
               required
             >
               <textarea
-                id="audienceFit"
                 name="audienceFit"
                 required
-                placeholder="Explain the alignment between what your audience needs and what Aries AI delivers"
-                style={textareaStyle}
+                placeholder="The alignment between their needs and what we deliver"
+                className={textareaClass}
               />
-            </Field>
+            </EditorialField>
           </div>
         </section>
       </div>
 
-      <div className="mt-8 flex justify-end">
+      <div className="mt-12 flex justify-end">
         <Button type="submit" variant="primary" size="lg" disabled={isPending}>
           {isPending ? "Submitting…" : "Submit application"}
         </Button>

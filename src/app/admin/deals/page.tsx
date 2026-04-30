@@ -4,9 +4,17 @@ import { redirect } from "next/navigation";
 import { getRequiredAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAdminDeals } from "@/domain/deals/queries";
-import StatusPill from "@/components/ui/StatusPill";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
+import EditorialTable, {
+  type ColumnDef,
+} from "@/components/brand/EditorialTable";
+import EditorialStatusPill from "@/components/brand/EditorialStatusPill";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Deals · Admin · Sugar & Leather",
+};
 
 const STATUS_LABELS: Record<string, string> = {
   OPEN: "Open",
@@ -23,6 +31,87 @@ function formatCents(cents: number, currency: string): string {
   }).format(cents / 100);
 }
 
+type Row = {
+  id: string;
+  partnerId: string;
+  productCode: string;
+  packageCode: string | null;
+  amount: string;
+  status: string;
+  closedAt: string;
+  crmId: string;
+};
+
+const columns: ColumnDef<Row & Record<string, unknown>>[] = [
+  {
+    key: "partnerId",
+    header: "Partner",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.partnerId}
+      </span>
+    ),
+  },
+  {
+    key: "productCode",
+    header: "Product",
+    render: (row) => (
+      <div className="flex flex-col">
+        <span className="text-[var(--sl-cream)]">{row.productCode}</span>
+        {row.packageCode ? (
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+            {row.packageCode}
+          </span>
+        ) : null}
+      </div>
+    ),
+  },
+  { key: "amount", header: "Amount", align: "right" },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <EditorialStatusPill
+        status={row.status}
+        label={STATUS_LABELS[row.status] ?? row.status}
+      />
+    ),
+  },
+  {
+    key: "closedAt",
+    header: "Closed",
+    align: "right",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.closedAt}
+      </span>
+    ),
+  },
+  {
+    key: "crmId",
+    header: "CRM ID",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.crmId}
+      </span>
+    ),
+  },
+  {
+    key: "id",
+    header: "",
+    align: "right",
+    render: (row) => (
+      <Link
+        href={`/admin/deals/${row.id}`}
+        className="group inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--sl-cream)] hover:text-[var(--sl-lavender)] transition-colors"
+      >
+        <span>View</span>
+        <span aria-hidden className="h-px w-6 bg-[var(--sl-cream)] transition-all group-hover:w-10 group-hover:bg-[var(--sl-lavender)]" />
+      </Link>
+    ),
+  },
+];
+
 export default async function AdminDealsPage() {
   try {
     await getRequiredAdmin();
@@ -31,182 +120,40 @@ export default async function AdminDealsPage() {
   }
 
   const deals = await getAdminDeals(
-    prisma as unknown as Parameters<typeof getAdminDeals>[0]
+    prisma as unknown as Parameters<typeof getAdminDeals>[0],
   );
 
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--surface-root)",
-        padding: "2rem",
-      }}
-    >
-      <div style={{ maxWidth: "80rem", margin: "0 auto" }}>
-        <div style={{ marginBottom: "2rem" }}>
-          <h1
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "2rem",
-              fontWeight: 700,
-              color: "var(--sl-cream)",
-              marginBottom: "0.25rem",
-            }}
-          >
-            Deals
-          </h1>
-          <p style={{ fontSize: "0.9375rem", color: "var(--sl-silver)" }}>
-            Track deal status and trigger commission staging on won deals.
-          </p>
-        </div>
+  const rows: (Row & Record<string, unknown>)[] = deals.map((d) => ({
+    id: d.id,
+    partnerId: d.partnerId,
+    productCode: d.productCode,
+    packageCode: d.packageCode ?? null,
+    amount: formatCents(d.amountCents, d.currency),
+    status: d.status,
+    closedAt: d.closedAt ? new Date(d.closedAt).toLocaleDateString() : "—",
+    crmId: d.externalCrmId ?? "—",
+  }));
 
-        <div
-          style={{
-            width: "100%",
-            overflowX: "auto",
-            borderRadius: "0.75rem",
-            border: "1px solid var(--border-dark)",
-          }}
-        >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "0.875rem",
-            }}
-          >
-            <thead>
-              <tr
-                style={{
-                  backgroundColor: "var(--sl-obsidian)",
-                  borderBottom: "1px solid var(--border-dark)",
-                }}
-              >
-                {[
-                  "Partner",
-                  "Product",
-                  "Amount",
-                  "Status",
-                  "Closed",
-                  "CRM ID",
-                  "",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: "0.75rem 1rem",
-                      textAlign: "left",
-                      fontWeight: 600,
-                      color: "var(--sl-silver)",
-                      letterSpacing: "0.025em",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {deals.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    style={{
-                      padding: "3rem 1rem",
-                      textAlign: "center",
-                      color: "var(--sl-mid-gray)",
-                    }}
-                  >
-                    No deals yet.
-                  </td>
-                </tr>
-              ) : (
-                deals.map((deal, i) => (
-                  <tr
-                    key={deal.id}
-                    style={{
-                      backgroundColor:
-                        i % 2 === 0
-                          ? "var(--surface-panel)"
-                          : "var(--sl-charcoal)",
-                      borderBottom: "1px solid var(--border-dark)",
-                    }}
-                  >
-                    <td
-                      style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)" }}
-                    >
-                      {deal.partnerId}
-                    </td>
-                    <td
-                      style={{ padding: "0.75rem 1rem", color: "var(--sl-cream)" }}
-                    >
-                      <div style={{ fontWeight: 500 }}>{deal.productCode}</div>
-                      {deal.packageCode && (
-                        <div
-                          style={{
-                            fontSize: "0.8125rem",
-                            color: "var(--sl-silver)",
-                          }}
-                        >
-                          {deal.packageCode}
-                        </div>
-                      )}
-                    </td>
-                    <td
-                      style={{
-                        padding: "0.75rem 1rem",
-                        color: "var(--sl-cream)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {formatCents(deal.amountCents, deal.currency)}
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem" }}>
-                      <StatusPill
-                        status={deal.status}
-                        label={STATUS_LABELS[deal.status] ?? deal.status}
-                      />
-                    </td>
-                    <td
-                      style={{
-                        padding: "0.75rem 1rem",
-                        color: "var(--sl-silver)",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {deal.closedAt
-                        ? new Date(deal.closedAt).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td
-                      style={{
-                        padding: "0.75rem 1rem",
-                        color: "var(--sl-silver)",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.8125rem",
-                      }}
-                    >
-                      {deal.externalCrmId ?? "—"}
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem" }}>
-                      <Link
-                        href={`/admin/deals/${deal.id}`}
-                        style={{
-                          fontSize: "0.875rem",
-                          color: "var(--sl-lavender)",
-                          textDecoration: "none",
-                        }}
-                      >
-                        View →
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+  const won = deals.filter((d) => d.status === "WON").length;
+
+  return (
+    <EditorialPageShell
+      sectionLabel="02 / Deals"
+      crumbs={[
+        { label: "Admin", href: "/admin" },
+        { label: "Deals" },
+      ]}
+      eyebrow="Pipeline"
+      headline={deals.length === 0 ? "No deals yet" : `${deals.length} ${deals.length === 1 ? "deal" : "deals"}`}
+      subheadline={deals.length > 0 ? `${won} won this period` : undefined}
+      mainChildren={
+        <EditorialTable
+          columns={columns}
+          data={rows}
+          rowKey={(row) => row.id}
+          emptyMessage="No deals yet."
+        />
+      }
+    />
   );
 }
