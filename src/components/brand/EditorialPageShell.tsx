@@ -88,16 +88,18 @@ export default function EditorialPageShell({
       </section>
 
       <div className="flex-1 px-8 pb-16 sm:px-16 lg:px-24">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
-          <div className={`col-span-1 ${cols.main}`}>{mainChildren}</div>
-          {sideChildren ? (
+        {sideChildren ? (
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
+            <div className={`col-span-1 ${cols.main}`}>{mainChildren}</div>
             <aside
               className={`col-span-1 ${cols.side} border-t border-[var(--border-dark)] pt-8 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0`}
             >
               {sideChildren}
             </aside>
-          ) : null}
-        </div>
+          </div>
+        ) : (
+          <div>{mainChildren}</div>
+        )}
       </div>
     </main>
   );
