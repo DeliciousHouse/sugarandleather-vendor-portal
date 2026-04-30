@@ -51,13 +51,23 @@ function SuccessView() {
   );
 }
 
-function SectionLabel({ index, label }: { index: string; label: string }) {
+function SectionLabel({
+  index,
+  label,
+  id,
+}: {
+  index: string;
+  label: string;
+  id?: string;
+}) {
   return (
     <div className="mb-6 flex items-baseline gap-4 border-b border-[var(--border-dark)] pb-3">
       <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]">
         {index}
       </span>
-      <h2 className="font-heading text-xl text-[var(--sl-cream)]">{label}</h2>
+      <h2 id={id} className="font-heading text-xl text-[var(--sl-cream)]">
+        {label}
+      </h2>
     </div>
   );
 }
@@ -84,7 +94,11 @@ export default function ApplicationForm({ action }: ApplicationFormProps) {
 
       <div className="flex flex-col gap-12">
         <section aria-labelledby="section-personal">
-          <SectionLabel index="01" label="Personal information" />
+          <SectionLabel
+            index="01"
+            label="Personal information"
+            id="section-personal"
+          />
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             <EditorialField label="Full name" htmlFor="fullName" required>
               <input
@@ -116,7 +130,11 @@ export default function ApplicationForm({ action }: ApplicationFormProps) {
         </section>
 
         <section aria-labelledby="section-company">
-          <SectionLabel index="02" label="Company and location" />
+          <SectionLabel
+            index="02"
+            label="Company and location"
+            id="section-company"
+          />
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             <EditorialField label="Company or organization" htmlFor="company">
               <input
@@ -139,7 +157,11 @@ export default function ApplicationForm({ action }: ApplicationFormProps) {
         </section>
 
         <section aria-labelledby="section-channels">
-          <SectionLabel index="03" label="Promotion channels" />
+          <SectionLabel
+            index="03"
+            label="Promotion channels"
+            id="section-channels"
+          />
           <p className="mb-6 max-w-xl font-body text-sm text-[var(--sl-silver)]">
             Where do you reach your audience? Select every channel that
             applies.
@@ -170,7 +192,11 @@ export default function ApplicationForm({ action }: ApplicationFormProps) {
         </section>
 
         <section aria-labelledby="section-experience">
-          <SectionLabel index="04" label="Experience and audience" />
+          <SectionLabel
+            index="04"
+            label="Experience and audience"
+            id="section-experience"
+          />
           <div className="flex flex-col gap-8">
             <EditorialField
               label="AI and technology experience"
@@ -196,7 +222,11 @@ export default function ApplicationForm({ action }: ApplicationFormProps) {
         </section>
 
         <section aria-labelledby="section-questions">
-          <SectionLabel index="05" label="A few more questions" />
+          <SectionLabel
+            index="05"
+            label="A few more questions"
+            id="section-questions"
+          />
           <div className="flex flex-col gap-8">
             <EditorialField
               label="Why do you want to partner with Sugar & Leather AI?"
