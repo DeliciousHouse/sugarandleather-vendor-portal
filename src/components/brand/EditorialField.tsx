@@ -21,8 +21,12 @@ export default function EditorialField({
   className = "",
   children,
 }: EditorialFieldProps) {
+  // Only reference helper text if it will actually be rendered.
+  // Helper text is hidden when an error is showing, so the helper id
+  // would point at a non-existent element in that state.
+  const helperRendered = !!helperText && !error;
   const describedBy = [
-    helperText ? `${htmlFor}-help` : null,
+    helperRendered ? `${htmlFor}-help` : null,
     error ? `${htmlFor}-error` : null,
   ]
     .filter(Boolean)

@@ -7,8 +7,9 @@
 
 # (Phase D — admin lists — all cleared)
 
-# Tiers UI module — uses inline hex for status indicators in TierRuleEditor.
-# This is a complex stateful editor that renders inside the tier detail page.
-# Tracked for future cleanup but out of scope for the visual port.
+# TierRuleEditor uses inline hex for status indicators. This is a complex
+# stateful editor — tracked for focused cleanup, out of scope for the visual
+# port. The check-tokens.sh gate filters by file path, so allowlisting just
+# this file is sufficient; the parent tiers detail page that renders it does
+# NOT need its own allowlist entry.
 src/components/tiers/TierRuleEditor.tsx
-src/app/admin/tiers/[id]/page.tsx
