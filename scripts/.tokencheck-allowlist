@@ -5,12 +5,10 @@
 #
 # Format: one path per line, relative to repo root. Comments allowed.
 
-# Phase D (admin lists) — pre-redesign hex codes
-src/app/admin/tiers/page.tsx
+# (Phase D — admin lists — all cleared)
 
-# Phase E (admin details) — pre-redesign hex codes
-src/app/admin/tiers/[id]/page.tsx
-src/app/admin/payouts/[id]/PayoutBatchActions.tsx
-
-# Phase D (tiers UI module) — pre-redesign hex codes
+# Tiers UI module — uses inline hex for status indicators in TierRuleEditor.
+# This is a complex stateful editor that renders inside the tier detail page.
+# Tracked for future cleanup but out of scope for the visual port.
 src/components/tiers/TierRuleEditor.tsx
+src/app/admin/tiers/[id]/page.tsx

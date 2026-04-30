@@ -3,11 +3,26 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getRequiredAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getAdminPayoutBatches, getPayableEvents } from "@/domain/payouts/queries";
-import StatusPill from "@/components/ui/StatusPill";
-import { promoteToPayableAction, createPayoutBatchAction } from "./[id]/actions";
+import {
+  getAdminPayoutBatches,
+  getPayableEvents,
+} from "@/domain/payouts/queries";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
+import EditorialTable, {
+  type ColumnDef,
+} from "@/components/brand/EditorialTable";
+import EditorialStatusPill from "@/components/brand/EditorialStatusPill";
+import Button from "@/components/ui/Button";
+import {
+  promoteToPayableAction,
+  createPayoutBatchAction,
+} from "./[id]/actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Payouts · Admin · Sugar & Leather",
+};
 
 const BATCH_STATUS_LABELS: Record<string, string> = {
   DRAFT: "Draft",
@@ -24,6 +39,98 @@ function formatCents(cents: number, currency: string): string {
   }).format(cents / 100);
 }
 
+type EventRow = {
+  id: string;
+  partnerId: string;
+  dealId: string;
+  kind: string;
+  tier: string;
+  amount: string;
+  eligible: string;
+};
+
+const eventColumns: ColumnDef<EventRow & Record<string, unknown>>[] = [
+  {
+    key: "partnerId",
+    header: "Partner",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.partnerId}
+      </span>
+    ),
+  },
+  {
+    key: "dealId",
+    header: "Deal",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.dealId.slice(-8)}
+      </span>
+    ),
+  },
+  { key: "kind", header: "Kind" },
+  {
+    key: "tier",
+    header: "Tier",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.tier}
+      </span>
+    ),
+  },
+  { key: "amount", header: "Amount", align: "right" },
+  { key: "eligible", header: "Eligible since", align: "right" },
+];
+
+type BatchRow = {
+  id: string;
+  status: string;
+  lines: number;
+  currency: string;
+  createdAt: string;
+  paidAt: string;
+};
+
+const batchColumns: ColumnDef<BatchRow & Record<string, unknown>>[] = [
+  {
+    key: "id",
+    header: "ID",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.id.slice(-8)}
+      </span>
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <EditorialStatusPill
+        status={row.status}
+        label={BATCH_STATUS_LABELS[row.status] ?? row.status}
+      />
+    ),
+  },
+  { key: "lines", header: "Lines", align: "right" },
+  { key: "currency", header: "Currency" },
+  { key: "createdAt", header: "Created", align: "right" },
+  { key: "paidAt", header: "Paid", align: "right" },
+  {
+    key: "view",
+    header: "",
+    align: "right",
+    render: (row) => (
+      <Link
+        href={`/admin/payouts/${row.id}`}
+        className="group inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--sl-cream)] hover:text-[var(--sl-lavender)] transition-colors"
+      >
+        <span>View</span>
+        <span aria-hidden className="h-px w-6 bg-[var(--sl-cream)] transition-all group-hover:w-10 group-hover:bg-[var(--sl-lavender)]" />
+      </Link>
+    ),
+  },
+];
+
 export default async function AdminPayoutsPage() {
   try {
     await getRequiredAdmin();
@@ -33,375 +140,114 @@ export default async function AdminPayoutsPage() {
 
   const [batches, payableEvents] = await Promise.all([
     getAdminPayoutBatches(
-      prisma as unknown as Parameters<typeof getAdminPayoutBatches>[0]
+      prisma as unknown as Parameters<typeof getAdminPayoutBatches>[0],
     ),
     getPayableEvents(
-      prisma as unknown as Parameters<typeof getPayableEvents>[0]
+      prisma as unknown as Parameters<typeof getPayableEvents>[0],
     ),
   ]);
 
   const totalPayable = payableEvents.reduce((sum, e) => sum + e.amountCents, 0);
 
+  const eventRows: (EventRow & Record<string, unknown>)[] = payableEvents.map(
+    (e) => ({
+      id: e.id,
+      partnerId: e.partnerId,
+      dealId: e.dealId,
+      kind: e.kind,
+      tier: e.tierNameSnapshot,
+      amount: formatCents(e.amountCents, e.currency),
+      eligible: new Date(e.payoutEligibleAt).toLocaleDateString(),
+    }),
+  );
+
+  const batchRows: (BatchRow & Record<string, unknown>)[] = batches.map((b) => ({
+    id: b.id,
+    status: b.status,
+    lines: b._count.lines,
+    currency: b.currency,
+    createdAt: new Date(b.createdAt).toLocaleDateString(),
+    paidAt: b.paidAt ? new Date(b.paidAt).toLocaleDateString() : "—",
+  }));
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--surface-root)",
-        padding: "2rem",
-      }}
-    >
-      <div style={{ maxWidth: "80rem", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ marginBottom: "2rem" }}>
-          <h1
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "2rem",
-              fontWeight: 700,
-              color: "var(--sl-cream)",
-              marginBottom: "0.25rem",
-            }}
-          >
-            Payouts
-          </h1>
-          <p style={{ fontSize: "0.9375rem", color: "var(--sl-silver)" }}>
-            Stage payable commissions, create payout batches, and manage clawbacks.
-          </p>
-        </div>
-
-        {/* Payable events summary */}
-        {payableEvents.length > 0 && (
-          <div
-            style={{
-              padding: "1.25rem 1.5rem",
-              backgroundColor: "var(--surface-panel)",
-              border: "1px solid var(--border-dark)",
-              borderRadius: "0.75rem",
-              marginBottom: "1.5rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "1rem",
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: "0.8125rem",
-                  color: "var(--sl-silver)",
-                  marginBottom: "0.25rem",
-                }}
-              >
-                Payable commissions ready for batching
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  fontSize: "1.5rem",
-                  fontWeight: 700,
-                  color: "var(--sl-cream)",
-                }}
-              >
-                {formatCents(totalPayable, "USD")}{" "}
-                <span style={{ fontSize: "0.9375rem", color: "var(--sl-silver)", fontFamily: "var(--font-body)" }}>
-                  across {payableEvents.length} event{payableEvents.length !== 1 ? "s" : ""}
-                </span>
-              </div>
-            </div>
-            <form action={createPayoutBatchAction}>
-              <input
-                type="hidden"
-                name="eventIds"
-                value={JSON.stringify(payableEvents.map((e) => e.id))}
-              />
-              <button
-                type="submit"
-                style={{
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "var(--sl-lavender)",
-                  color: "var(--sl-obsidian)",
-                  borderRadius: "0.5rem",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Create Payout Batch ({payableEvents.length})
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* Promote to payable action */}
-        <div
-          style={{
-            padding: "1rem 1.5rem",
-            backgroundColor: "var(--surface-panel)",
-            border: "1px solid var(--border-dark)",
-            borderRadius: "0.75rem",
-            marginBottom: "2rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "1rem",
-          }}
-        >
-          <p style={{ fontSize: "0.875rem", color: "var(--sl-silver)" }}>
-            Move eligible staged commissions (past their payout delay) to{" "}
-            <span style={{ color: "var(--sl-cream)" }}>Payable</span> status.
-          </p>
-          <form action={promoteToPayableAction}>
-            <button
-              type="submit"
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "transparent",
-                color: "var(--sl-lavender)",
-                border: "1px solid var(--border-dark)",
-                borderRadius: "0.5rem",
-                fontWeight: 500,
-                fontSize: "0.875rem",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Promote Staged → Payable
-            </button>
+    <EditorialPageShell
+      sectionLabel="02 / Payouts"
+      crumbs={[
+        { label: "Admin", href: "/admin" },
+        { label: "Payouts" },
+      ]}
+      eyebrow="Commission stage"
+      headline={
+        payableEvents.length === 0
+          ? "Nothing payable"
+          : `${formatCents(totalPayable, "USD")} payable`
+      }
+      subheadline={
+        payableEvents.length > 0
+          ? `Across ${payableEvents.length} event${payableEvents.length !== 1 ? "s" : ""}`
+          : undefined
+      }
+      actions={
+        payableEvents.length > 0 ? (
+          <form action={createPayoutBatchAction}>
+            <input
+              type="hidden"
+              name="eventIds"
+              value={JSON.stringify(payableEvents.map((e) => e.id))}
+            />
+            <Button type="submit" size="sm">
+              Create batch ({payableEvents.length})
+            </Button>
           </form>
-        </div>
-
-        {/* Payable events table */}
-        {payableEvents.length > 0 && (
-          <div style={{ marginBottom: "2.5rem" }}>
-            <h2
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                color: "var(--sl-cream)",
-                marginBottom: "1rem",
-              }}
-            >
-              Payable Events
-            </h2>
-            <div
-              style={{
-                width: "100%",
-                overflowX: "auto",
-                borderRadius: "0.75rem",
-                border: "1px solid var(--border-dark)",
-              }}
-            >
-              <table
-                style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}
-              >
-                <thead>
-                  <tr
-                    style={{
-                      backgroundColor: "var(--sl-obsidian)",
-                      borderBottom: "1px solid var(--border-dark)",
-                    }}
-                  >
-                    {["Partner", "Deal", "Kind", "Tier", "Amount", "Eligible Since"].map((h) => (
-                      <th
-                        key={h}
-                        style={{
-                          padding: "0.75rem 1rem",
-                          textAlign: "left",
-                          fontWeight: 600,
-                          color: "var(--sl-silver)",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {payableEvents.map((event, i) => (
-                    <tr
-                      key={event.id}
-                      style={{
-                        backgroundColor:
-                          i % 2 === 0 ? "var(--surface-panel)" : "var(--sl-charcoal)",
-                        borderBottom: "1px solid var(--border-dark)",
-                      }}
-                    >
-                      <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)" }}>
-                        {event.partnerId}
-                      </td>
-                      <td
-                        style={{
-                          padding: "0.75rem 1rem",
-                          color: "var(--sl-silver)",
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.8125rem",
-                        }}
-                      >
-                        {event.dealId.slice(-8)}
-                      </td>
-                      <td style={{ padding: "0.75rem 1rem", color: "var(--sl-cream)" }}>
-                        {event.kind}
-                      </td>
-                      <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)" }}>
-                        {event.tierNameSnapshot}
-                      </td>
-                      <td
-                        style={{
-                          padding: "0.75rem 1rem",
-                          color: "var(--sl-cream)",
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      >
-                        {formatCents(event.amountCents, event.currency)}
-                      </td>
-                      <td
-                        style={{
-                          padding: "0.75rem 1rem",
-                          color: "var(--sl-silver)",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {new Date(event.payoutEligibleAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        ) : null
+      }
+      mainChildren={
+        <div className="flex flex-col gap-12">
+          <section className="border-t border-[var(--border-dark)] pt-6">
+            <div className="flex items-baseline justify-between gap-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]">
+                Promote staged → payable
+              </p>
+              <form action={promoteToPayableAction}>
+                <Button type="submit" variant="ghost" size="sm">
+                  Run promotion
+                </Button>
+              </form>
             </div>
-          </div>
-        )}
+            <p className="mt-3 max-w-xl font-body text-sm text-[var(--sl-silver)]">
+              Move eligible staged commissions (past their payout delay
+              window) to payable status.
+            </p>
+          </section>
 
-        {/* Payout batches */}
-        <h2
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "1.25rem",
-            fontWeight: 600,
-            color: "var(--sl-cream)",
-            marginBottom: "1rem",
-          }}
-        >
-          Payout Batches
-        </h2>
-        <div
-          style={{
-            width: "100%",
-            overflowX: "auto",
-            borderRadius: "0.75rem",
-            border: "1px solid var(--border-dark)",
-          }}
-        >
-          <table
-            style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}
-          >
-            <thead>
-              <tr
-                style={{
-                  backgroundColor: "var(--sl-obsidian)",
-                  borderBottom: "1px solid var(--border-dark)",
-                }}
-              >
-                {["ID", "Status", "Lines", "Currency", "Created", "Paid", ""].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: "0.75rem 1rem",
-                      textAlign: "left",
-                      fontWeight: 600,
-                      color: "var(--sl-silver)",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {batches.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    style={{
-                      padding: "3rem 1rem",
-                      textAlign: "center",
-                      color: "var(--sl-mid-gray)",
-                    }}
-                  >
-                    No payout batches yet.
-                  </td>
-                </tr>
-              ) : (
-                batches.map((batch, i) => (
-                  <tr
-                    key={batch.id}
-                    style={{
-                      backgroundColor:
-                        i % 2 === 0 ? "var(--surface-panel)" : "var(--sl-charcoal)",
-                      borderBottom: "1px solid var(--border-dark)",
-                    }}
-                  >
-                    <td
-                      style={{
-                        padding: "0.75rem 1rem",
-                        color: "var(--sl-silver)",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.8125rem",
-                      }}
-                    >
-                      {batch.id.slice(-8)}
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem" }}>
-                      <StatusPill
-                        status={batch.status}
-                        label={BATCH_STATUS_LABELS[batch.status] ?? batch.status}
-                      />
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)" }}>
-                      {batch._count.lines}
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)" }}>
-                      {batch.currency}
-                    </td>
-                    <td
-                      style={{
-                        padding: "0.75rem 1rem",
-                        color: "var(--sl-silver)",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {new Date(batch.createdAt).toLocaleDateString()}
-                    </td>
-                    <td
-                      style={{
-                        padding: "0.75rem 1rem",
-                        color: "var(--sl-silver)",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {batch.paidAt ? new Date(batch.paidAt).toLocaleDateString() : "—"}
-                    </td>
-                    <td style={{ padding: "0.75rem 1rem" }}>
-                      <Link
-                        href={`/admin/payouts/${batch.id}`}
-                        style={{
-                          fontSize: "0.875rem",
-                          color: "var(--sl-lavender)",
-                          textDecoration: "none",
-                        }}
-                      >
-                        View →
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          {payableEvents.length > 0 ? (
+            <section>
+              <h2 className="mb-6 font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]">
+                Payable events
+              </h2>
+              <EditorialTable
+                columns={eventColumns}
+                data={eventRows}
+                rowKey={(row) => row.id}
+                emptyMessage="No payable events."
+              />
+            </section>
+          ) : null}
+
+          <section>
+            <h2 className="mb-6 font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]">
+              Payout batches
+            </h2>
+            <EditorialTable
+              columns={batchColumns}
+              data={batchRows}
+              rowKey={(row) => row.id}
+              emptyMessage="No payout batches yet."
+            />
+          </section>
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 }

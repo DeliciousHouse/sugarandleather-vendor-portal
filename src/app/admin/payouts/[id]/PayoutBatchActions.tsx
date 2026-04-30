@@ -2,22 +2,8 @@
 
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Button from "@/components/ui/Button";
 import { markBatchPaidAction, clawbackEventAction } from "./actions";
-
-const buttonBase: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  padding: "0.4375rem 0.875rem",
-  borderRadius: "0.375rem",
-  fontSize: "0.875rem",
-  fontWeight: 500,
-  cursor: "pointer",
-  border: "none",
-};
-
-// ---------------------------------------------------------------------------
-// ClawbackLineButton — inline clawback for a single commission event
-// ---------------------------------------------------------------------------
 
 function ClawbackLineButton({ eventId }: { eventId: string }) {
   const router = useRouter();
@@ -42,76 +28,50 @@ function ClawbackLineButton({ eventId }: { eventId: string }) {
 
   if (!showForm) {
     return (
-      <button
+      <Button
+        variant="danger"
+        size="sm"
         onClick={() => setShowForm(true)}
-        style={{
-          ...buttonBase,
-          backgroundColor: "transparent",
-          color: "#f87171",
-          border: "1px solid rgba(248,113,113,0.3)",
-        }}
+        type="button"
       >
         Clawback
-      </button>
+      </Button>
     );
   }
 
   return (
     <form
       onSubmit={handleClawback}
-      style={{ display: "flex", flexDirection: "column", gap: "0.5rem", minWidth: "16rem" }}
+      className="flex min-w-[16rem] flex-col gap-3"
     >
       <input
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         placeholder="Reason (required)"
         required
-        style={{
-          padding: "0.375rem 0.625rem",
-          backgroundColor: "var(--sl-charcoal)",
-          border: "1px solid var(--border-dark)",
-          borderRadius: "0.375rem",
-          color: "var(--sl-cream)",
-          fontSize: "0.8125rem",
-          outline: "none",
-        }}
+        className="border-b border-[var(--border-dark)] bg-transparent py-1 font-body text-sm text-[var(--sl-cream)] placeholder:text-[var(--sl-silver)]/50 focus:border-[var(--sl-cream)] focus:outline-none"
       />
-      {error && <p style={{ color: "#f87171", fontSize: "0.75rem" }}>{error}</p>}
-      <div style={{ display: "flex", gap: "0.5rem" }}>
-        <button
+      {error ? (
+        <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--status-danger-text)]">
+          {error}
+        </p>
+      ) : null}
+      <div className="flex gap-3">
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => setShowForm(false)}
-          style={{
-            ...buttonBase,
-            backgroundColor: "transparent",
-            color: "var(--sl-silver)",
-            border: "1px solid var(--border-dark)",
-            padding: "0.3125rem 0.625rem",
-          }}
         >
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isPending}
-          style={{
-            ...buttonBase,
-            backgroundColor: "#dc2626",
-            color: "#fff",
-            padding: "0.3125rem 0.625rem",
-            opacity: isPending ? 0.7 : 1,
-          }}
-        >
+        </Button>
+        <Button type="submit" variant="danger" size="sm" disabled={isPending}>
           {isPending ? "…" : "Confirm"}
-        </button>
+        </Button>
       </div>
     </form>
   );
 }
-
-// ---------------------------------------------------------------------------
-// MarkBatchPaidButton
-// ---------------------------------------------------------------------------
 
 function MarkBatchPaidButton({ batchId }: { batchId: string }) {
   const router = useRouter();
@@ -121,7 +81,7 @@ function MarkBatchPaidButton({ batchId }: { batchId: string }) {
   function handleMarkPaid() {
     if (
       !confirm(
-        "Mark this payout batch as paid? This will mark all commission events as PAID."
+        "Mark this payout batch as paid? This will mark all commission events as PAID.",
       )
     )
       return;
@@ -137,33 +97,28 @@ function MarkBatchPaidButton({ batchId }: { batchId: string }) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-      <button
-        onClick={handleMarkPaid}
-        disabled={isPending}
-        style={{
-          ...buttonBase,
-          backgroundColor: "var(--sl-lavender)",
-          color: "var(--sl-obsidian)",
-          opacity: isPending ? 0.7 : 1,
-        }}
-      >
-        {isPending ? "Marking…" : "Mark as Paid"}
-      </button>
-      {error && <p style={{ color: "#f87171", fontSize: "0.8125rem" }}>{error}</p>}
+    <div className="flex flex-col gap-2">
+      <Button onClick={handleMarkPaid} disabled={isPending} size="sm">
+        {isPending ? "Marking…" : "Mark as paid"}
+      </Button>
+      {error ? (
+        <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--status-danger-text)]">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// PayoutBatchActions — public entry point used by the detail page
-// ---------------------------------------------------------------------------
 
 type Props =
   | { batchId: string; batchStatus: string; clawbackEventId?: undefined }
   | { batchId: string; batchStatus: string; clawbackEventId: string };
 
-export default function PayoutBatchActions({ batchId, batchStatus, clawbackEventId }: Props) {
+export default function PayoutBatchActions({
+  batchId,
+  batchStatus,
+  clawbackEventId,
+}: Props) {
   if (clawbackEventId) {
     return <ClawbackLineButton eventId={clawbackEventId} />;
   }

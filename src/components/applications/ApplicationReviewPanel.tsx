@@ -1,4 +1,5 @@
-import StatusPill from "@/components/ui/StatusPill";
+import React from "react";
+import EditorialStatusPill from "@/components/brand/EditorialStatusPill";
 
 export type ApplicationDetail = {
   id: string;
@@ -22,23 +23,28 @@ const STATUS_LABELS: Record<string, string> = {
   SUBMITTED: "Submitted",
   IN_REVIEW: "In review",
   REJECTED: "Rejected",
-  APPROVED_PENDING_AGREEMENT: "Approved — pending agreement",
+  APPROVED_PENDING_AGREEMENT: "Approved · pending agreement",
   AGREEMENT_SENT: "Agreement sent",
   SIGNED: "Signed",
   ACTIVATED: "Activated",
 };
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+function InfoRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
-    <div className="py-3 flex gap-4 border-b" style={{ borderColor: "var(--border-dark)" }}>
-      <dt
-        className="text-sm font-medium w-40 shrink-0"
-        style={{ color: "var(--sl-silver)" }}
-      >
+    <div className="flex flex-col gap-2 border-b border-[var(--border-dark)] py-4 last:border-b-0 sm:flex-row sm:gap-8">
+      <dt className="font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)] sm:w-40 sm:shrink-0">
         {label}
       </dt>
-      <dd className="text-sm" style={{ color: "var(--sl-cream)" }}>
-        {value || <span style={{ color: "var(--sl-mid-gray)" }}>—</span>}
+      <dd className="font-body text-sm text-[var(--sl-cream)]">
+        {value || (
+          <span className="text-[var(--sl-mid-gray)]">—</span>
+        )}
       </dd>
     </div>
   );
@@ -46,44 +52,41 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Timeline({ app }: { app: ApplicationDetail }) {
   const createdAt =
-    typeof app.createdAt === "string"
-      ? new Date(app.createdAt)
-      : app.createdAt;
-  const reviewedAt =
-    app.reviewedAt
-      ? typeof app.reviewedAt === "string"
-        ? new Date(app.reviewedAt)
-        : app.reviewedAt
-      : null;
+    typeof app.createdAt === "string" ? new Date(app.createdAt) : app.createdAt;
+  const reviewedAt = app.reviewedAt
+    ? typeof app.reviewedAt === "string"
+      ? new Date(app.reviewedAt)
+      : app.reviewedAt
+    : null;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <div
-          className="h-2 w-2 rounded-full shrink-0"
-          style={{ backgroundColor: "var(--sl-lavender)" }}
+        <span
+          aria-hidden
+          className="h-px w-6 bg-[var(--sl-cream)]"
         />
-        <span className="text-sm" style={{ color: "var(--sl-cream)" }}>
-          Application submitted{" "}
-          <span style={{ color: "var(--sl-mid-gray)" }}>
+        <span className="font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--sl-cream)]">
+          Submitted
+          <span className="ml-3 text-[var(--sl-silver)]">
             {createdAt.toLocaleDateString()}
           </span>
         </span>
       </div>
-      {reviewedAt && (
+      {reviewedAt ? (
         <div className="flex items-center gap-3">
-          <div
-            className="h-2 w-2 rounded-full shrink-0"
-            style={{ backgroundColor: "var(--sl-lavender)" }}
+          <span
+            aria-hidden
+            className="h-px w-6 bg-[var(--sl-lavender)]"
           />
-          <span className="text-sm" style={{ color: "var(--sl-cream)" }}>
-            {STATUS_LABELS[app.status] ?? app.status}{" "}
-            <span style={{ color: "var(--sl-mid-gray)" }}>
+          <span className="font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--sl-cream)]">
+            {STATUS_LABELS[app.status] ?? app.status}
+            <span className="ml-3 text-[var(--sl-silver)]">
               {reviewedAt.toLocaleDateString()}
             </span>
           </span>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -100,116 +103,71 @@ export default function ApplicationReviewPanel({
   const subjectiveAnswers = app.subjectiveAnswers ?? {};
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1
-            className="text-2xl font-bold mb-1"
-            style={{
-              fontFamily: "var(--font-heading)",
-              color: "var(--sl-cream)",
-            }}
-          >
-            {app.fullName}
-          </h1>
-          <p className="text-sm" style={{ color: "var(--sl-mid-gray)" }}>
-            {app.email}
-          </p>
-        </div>
-        <StatusPill
+    <div className="flex flex-col gap-12">
+      <div className="flex flex-wrap items-center gap-4">
+        <EditorialStatusPill
           status={app.status}
           label={STATUS_LABELS[app.status] ?? app.status}
         />
       </div>
 
-      {/* Status timeline */}
-      <section
-        aria-labelledby="timeline-heading"
-        className="rounded-xl border p-5"
-        style={{
-          backgroundColor: "var(--surface-panel)",
-          borderColor: "var(--border-dark)",
-        }}
-      >
+      <section aria-labelledby="timeline-heading">
         <h2
           id="timeline-heading"
-          className="text-sm font-semibold mb-4"
-          style={{ color: "var(--sl-silver)" }}
+          className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]"
         >
-          Status timeline
+          Status
         </h2>
         <Timeline app={app} />
       </section>
 
-      {/* Application details */}
-      <section
-        aria-labelledby="details-heading"
-        className="rounded-xl border p-5"
-        style={{
-          backgroundColor: "var(--surface-panel)",
-          borderColor: "var(--border-dark)",
-        }}
-      >
+      <section aria-labelledby="details-heading">
         <h2
           id="details-heading"
-          className="text-sm font-semibold mb-4"
-          style={{ color: "var(--sl-silver)" }}
+          className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]"
         >
-          Application details
+          Details
         </h2>
-        <dl>
+        <dl className="flex flex-col">
           <InfoRow label="Full name" value={app.fullName} />
           <InfoRow label="Email" value={app.email} />
           <InfoRow label="Phone" value={app.phone} />
           <InfoRow label="Company" value={app.company} />
           <InfoRow label="Country" value={app.country} />
-          <InfoRow
-            label="Channels"
-            value={app.promotionChannels.join(", ")}
-          />
+          <InfoRow label="Channels" value={app.promotionChannels.join(", ")} />
           <InfoRow
             label="AI experience"
             value={
-              <p className="whitespace-pre-wrap">{app.aiTechExperience}</p>
+              <p className="whitespace-pre-wrap leading-relaxed">
+                {app.aiTechExperience}
+              </p>
             }
           />
           <InfoRow
             label="Audience"
-            value={<p className="whitespace-pre-wrap">{app.audience}</p>}
+            value={
+              <p className="whitespace-pre-wrap leading-relaxed">
+                {app.audience}
+              </p>
+            }
           />
         </dl>
       </section>
 
-      {/* Subjective answers */}
-      <section
-        aria-labelledby="subjective-heading"
-        className="rounded-xl border p-5"
-        style={{
-          backgroundColor: "var(--surface-panel)",
-          borderColor: "var(--border-dark)",
-        }}
-      >
+      <section aria-labelledby="subjective-heading">
         <h2
           id="subjective-heading"
-          className="text-sm font-semibold mb-4"
-          style={{ color: "var(--sl-silver)" }}
+          className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]"
         >
           Applicant answers
         </h2>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8">
           {Object.entries(subjectiveAnswers).map(([key, answer]) => (
             <div key={key}>
-              <p
-                className="text-xs font-medium uppercase tracking-wide mb-1"
-                style={{ color: "var(--sl-lavender)" }}
-              >
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]">
                 {key.replace(/([A-Z])/g, " $1").trim()}
               </p>
-              <p
-                className="text-sm whitespace-pre-wrap"
-                style={{ color: "var(--sl-cream)" }}
-              >
+              <p className="font-body text-sm leading-relaxed text-[var(--sl-cream)] whitespace-pre-wrap">
                 {answer}
               </p>
             </div>
@@ -217,36 +175,28 @@ export default function ApplicationReviewPanel({
         </div>
       </section>
 
-      {/* Admin notes */}
-      {app.reviewNotes && (
-        <section
-          aria-labelledby="notes-heading"
-          className="rounded-xl border p-5"
-          style={{
-            backgroundColor: "var(--surface-panel)",
-            borderColor: "var(--border-dark)",
-          }}
-        >
+      {app.reviewNotes ? (
+        <section aria-labelledby="notes-heading">
           <h2
             id="notes-heading"
-            className="text-sm font-semibold mb-2"
-            style={{ color: "var(--sl-silver)" }}
+            className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--sl-silver)]"
           >
             Review notes
           </h2>
-          <p
-            className="text-sm whitespace-pre-wrap"
-            style={{ color: "var(--sl-cream)" }}
-          >
+          <p className="font-body text-sm leading-relaxed text-[var(--sl-cream)] whitespace-pre-wrap">
             {app.reviewNotes}
           </p>
         </section>
-      )}
+      ) : null}
 
-      {/* Action area */}
-      {actions && (
-        <section aria-label="Review actions">{actions}</section>
-      )}
+      {actions ? (
+        <section
+          aria-label="Review actions"
+          className="border-t border-[var(--border-dark)] pt-8"
+        >
+          {actions}
+        </section>
+      ) : null}
     </div>
   );
 }

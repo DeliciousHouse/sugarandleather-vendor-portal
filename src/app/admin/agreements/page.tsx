@@ -1,13 +1,18 @@
-import Link from "next/link";
+import React from "react";
 import { prisma } from "@/lib/prisma";
 import { getRequiredAdmin } from "@/lib/auth";
 import { listAdminAgreements } from "@/domain/agreements/queries";
-import DataTable from "@/components/ui/DataTable";
-import StatusPill from "@/components/ui/StatusPill";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
+import EditorialTable, {
+  type ColumnDef,
+} from "@/components/brand/EditorialTable";
+import EditorialStatusPill from "@/components/brand/EditorialStatusPill";
+import EditorialFilterBar from "@/components/brand/EditorialFilterBar";
+import EditorialPagination from "@/components/brand/EditorialPagination";
 import AgreementActionsCell from "./AgreementActionsCell";
 
 export const metadata = {
-  title: "Agreements — Admin — Sugar & Leather",
+  title: "Agreements · Admin · Sugar & Leather",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -18,6 +23,78 @@ const STATUS_LABELS: Record<string, string> = {
   EXPIRED: "Expired",
 };
 
+const STATUSES = ["DRAFT", "SENT", "SIGNED", "VOIDED", "EXPIRED"];
+
+type Row = {
+  id: string;
+  applicant: string;
+  email: string;
+  status: string;
+  sentAt: string;
+  signedAt: string;
+  applicationId: string | null;
+  signedEvidenceUrl: string | null;
+  signedEvidenceNote: string | null;
+};
+
+const columns: ColumnDef<Row & Record<string, unknown>>[] = [
+  {
+    key: "applicant",
+    header: "Applicant",
+    render: (row) => (
+      <div className="flex flex-col">
+        <span className="text-[var(--sl-cream)]">{row.applicant}</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+          {row.email}
+        </span>
+      </div>
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <EditorialStatusPill
+        status={row.status}
+        label={STATUS_LABELS[row.status] ?? row.status}
+      />
+    ),
+  },
+  {
+    key: "sentAt",
+    header: "Sent",
+    align: "right",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.sentAt}
+      </span>
+    ),
+  },
+  {
+    key: "signedAt",
+    header: "Signed",
+    align: "right",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {row.signedAt}
+      </span>
+    ),
+  },
+  {
+    key: "id",
+    header: "Actions",
+    align: "right",
+    render: (row) => (
+      <AgreementActionsCell
+        agreementId={row.id}
+        status={row.status}
+        applicationId={row.applicationId ?? undefined}
+        hasEvidence={!!(row.signedEvidenceUrl || row.signedEvidenceNote)}
+      />
+    ),
+  },
+];
+
 export default async function AdminAgreementsPage({
   searchParams,
 }: {
@@ -27,156 +104,61 @@ export default async function AdminAgreementsPage({
 
   const { status, page: pageStr } = await searchParams;
   const requestedPage = Math.max(1, parseInt(pageStr ?? "1", 10));
-  const {
-    agreements,
-    total,
-    page,
-    totalPages,
-  } = await listAdminAgreements(prisma as unknown as Parameters<typeof listAdminAgreements>[0], { status, page: requestedPage });
+  const { agreements, total, page, totalPages } = await listAdminAgreements(
+    prisma as unknown as Parameters<typeof listAdminAgreements>[0],
+    { status, page: requestedPage },
+  );
 
-  const rows = agreements.map((a) => ({
+  const rows: (Row & Record<string, unknown>)[] = agreements.map((a) => ({
     id: a.id,
     applicant: a.applicantName,
     email: a.applicantEmail,
     status: a.status,
     sentAt: a.sentAt ? a.sentAt.toLocaleDateString() : "—",
     signedAt: a.signedAt ? a.signedAt.toLocaleDateString() : "—",
-    applicationId: a.applicationId,
-    signedEvidenceUrl: a.signedEvidenceUrl,
-    signedEvidenceNote: a.signedEvidenceNote,
+    applicationId: a.applicationId ?? null,
+    signedEvidenceUrl: a.signedEvidenceUrl ?? null,
+    signedEvidenceNote: a.signedEvidenceNote ?? null,
   }));
 
-  type Row = (typeof rows)[number];
-
-  const columns = [
-    { key: "applicant", header: "Applicant" },
-    { key: "email", header: "Email" },
-    {
-      key: "status",
-      header: "Status",
-      render: (_: unknown, row: Row) => (
-        <StatusPill
-          status={row.status}
-          label={STATUS_LABELS[row.status] ?? row.status}
-        />
-      ),
-    },
-    { key: "sentAt", header: "Sent" },
-    { key: "signedAt", header: "Signed" },
-    {
-      key: "id",
-      header: "Actions",
-      render: (_: unknown, row: Row) => (
-        <AgreementActionsCell
-          agreementId={row.id}
-          status={row.status}
-          applicationId={row.applicationId ?? undefined}
-          hasEvidence={
-            !!(row.signedEvidenceUrl || row.signedEvidenceNote)
-          }
-        />
-      ),
-    },
+  const filterOptions = [
+    { label: "All", href: "/admin/agreements", active: !status },
+    ...STATUSES.map((s) => ({
+      label: STATUS_LABELS[s] ?? s,
+      href: `/admin/agreements?status=${s}`,
+      active: status === s,
+    })),
   ];
 
-  const statuses = ["DRAFT", "SENT", "SIGNED", "VOIDED", "EXPIRED"];
+  const buildPageHref = (p: number) =>
+    `/admin/agreements?${status ? `status=${status}&` : ""}page=${p}`;
 
   return (
-    <main
-      className="min-h-screen py-10 px-6"
-      style={{ backgroundColor: "var(--surface-root)" }}
-    >
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1
-            className="text-3xl font-bold"
-            style={{
-              fontFamily: "var(--font-heading)",
-              color: "var(--sl-cream)",
-            }}
-          >
-            Agreements
-          </h1>
-          <p className="text-sm" style={{ color: "var(--sl-mid-gray)" }}>
-            {total} total
-          </p>
+    <EditorialPageShell
+      sectionLabel="02 / Agreements"
+      crumbs={[
+        { label: "Admin", href: "/admin" },
+        { label: "Agreements" },
+      ]}
+      eyebrow="Signature queue"
+      headline={total === 0 ? "Nothing pending" : `${total} ${total === 1 ? "agreement" : "agreements"}`}
+      subheadline={total > 0 ? `Showing page ${page} of ${totalPages}` : undefined}
+      mainChildren={
+        <div className="flex flex-col gap-8">
+          <EditorialFilterBar options={filterOptions} />
+          <EditorialTable
+            columns={columns}
+            data={rows}
+            rowKey={(row) => row.id}
+            emptyMessage="No agreements match this filter."
+          />
+          <EditorialPagination
+            page={page}
+            totalPages={totalPages}
+            buildHref={buildPageHref}
+          />
         </div>
-
-        {/* Status filter */}
-        <nav
-          className="flex flex-wrap gap-2 mb-6"
-          aria-label="Filter by status"
-        >
-          <Link
-            href="/admin/agreements"
-            className="px-3 py-1.5 text-sm rounded-full border"
-            style={{
-              backgroundColor: !status
-                ? "var(--accent-bg-subtle)"
-                : "transparent",
-              borderColor: "var(--border-dark)",
-              color: "var(--sl-cream)",
-            }}
-          >
-            All
-          </Link>
-          {statuses.map((s) => (
-            <Link
-              key={s}
-              href={`/admin/agreements?status=${s}`}
-              className="px-3 py-1.5 text-sm rounded-full border"
-              style={{
-                backgroundColor:
-                  status === s ? "var(--accent-bg-subtle)" : "transparent",
-                borderColor: "var(--border-dark)",
-                color: "var(--sl-cream)",
-              }}
-            >
-              {STATUS_LABELS[s] ?? s}
-            </Link>
-          ))}
-        </nav>
-
-        <DataTable
-          columns={columns as Parameters<typeof DataTable>[0]["columns"]}
-          data={rows as Record<string, unknown>[]}
-          emptyMessage="No agreements found"
-        />
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6">
-            <p className="text-sm" style={{ color: "var(--sl-mid-gray)" }}>
-              Page {page} of {totalPages}
-            </p>
-            <div className="flex gap-2">
-              {page > 1 && (
-                <Link
-                  href={`/admin/agreements?${status ? `status=${status}&` : ""}page=${page - 1}`}
-                  className="px-3 py-1.5 text-sm rounded border"
-                  style={{
-                    borderColor: "var(--border-dark)",
-                    color: "var(--sl-cream)",
-                  }}
-                >
-                  Previous
-                </Link>
-              )}
-              {page < totalPages && (
-                <Link
-                  href={`/admin/agreements?${status ? `status=${status}&` : ""}page=${page + 1}`}
-                  className="px-3 py-1.5 text-sm rounded border"
-                  style={{
-                    borderColor: "var(--border-dark)",
-                    color: "var(--sl-cream)",
-                  }}
-                >
-                  Next
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </main>
+      }
+    />
   );
 }

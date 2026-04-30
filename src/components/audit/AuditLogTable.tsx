@@ -1,4 +1,7 @@
 import React from "react";
+import EditorialTable, {
+  type ColumnDef,
+} from "@/components/brand/EditorialTable";
 
 export type AuditLogRow = {
   id: string;
@@ -20,7 +23,7 @@ interface AuditLogTableProps {
 
 function diffSummary(
   before: Record<string, unknown> | null,
-  after: Record<string, unknown> | null
+  after: Record<string, unknown> | null,
 ): string {
   if (!before && !after) return "—";
 
@@ -34,7 +37,9 @@ function diffSummary(
     const prev = before?.[key];
     const next = after?.[key];
     if (JSON.stringify(prev) !== JSON.stringify(next)) {
-      changes.push(`${key}: ${JSON.stringify(prev) ?? "–"} → ${JSON.stringify(next) ?? "–"}`);
+      changes.push(
+        `${key}: ${JSON.stringify(prev) ?? "–"} → ${JSON.stringify(next) ?? "–"}`,
+      );
     }
   }
 
@@ -43,189 +48,95 @@ function diffSummary(
   return `${changes.slice(0, 3).join(", ")} + ${changes.length - 3} more`;
 }
 
+const columns: ColumnDef<AuditLogRow & Record<string, unknown>>[] = [
+  {
+    key: "createdAt",
+    header: "Timestamp",
+    render: (row) => (
+      <time
+        dateTime={new Date(row.createdAt).toISOString()}
+        className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]"
+      >
+        {new Date(row.createdAt).toLocaleString()}
+      </time>
+    ),
+  },
+  {
+    key: "actor",
+    header: "Actor",
+    render: (row) =>
+      row.actorType === "SYSTEM" ? (
+        <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-mid-gray)]">
+          system
+        </span>
+      ) : (
+        <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+          {row.actorId ?? "—"}
+        </span>
+      ),
+  },
+  {
+    key: "action",
+    header: "Action",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-cream)]">
+        {row.action}
+      </span>
+    ),
+  },
+  {
+    key: "entity",
+    header: "Entity",
+    render: (row) => (
+      <div className="flex flex-col">
+        <span className="text-[var(--sl-cream)]">{row.entityType}</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+          {row.entityId}
+        </span>
+      </div>
+    ),
+  },
+  {
+    key: "diff",
+    header: "Changes",
+    render: (row) => (
+      <details className="group max-w-md">
+        <summary className="cursor-pointer list-none text-sm text-[var(--sl-silver)] hover:text-[var(--sl-cream)]">
+          {diffSummary(row.before, row.after)}
+        </summary>
+        {row.before || row.after ? (
+          <pre className="mt-3 max-w-md overflow-x-auto whitespace-pre-wrap break-all border border-[var(--border-dark)] p-3 font-mono text-[11px] leading-relaxed text-[var(--sl-silver)]">
+            {JSON.stringify(
+              { before: row.before, after: row.after },
+              null,
+              2,
+            )}
+          </pre>
+        ) : null}
+      </details>
+    ),
+  },
+  {
+    key: "reason",
+    header: "Reason",
+    render: (row) => (
+      <span className="text-sm text-[var(--sl-mid-gray)]">
+        {row.reason ?? "—"}
+      </span>
+    ),
+  },
+];
+
 export default function AuditLogTable({
   rows,
   emptyMessage = "No audit events.",
 }: AuditLogTableProps) {
   return (
-    <div
-      style={{
-        width: "100%",
-        overflowX: "auto",
-        borderRadius: "0.75rem",
-        border: "1px solid var(--border-dark)",
-      }}
-    >
-      <table
-        style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}
-      >
-        <thead>
-          <tr
-            style={{
-              backgroundColor: "var(--sl-obsidian)",
-              borderBottom: "1px solid var(--border-dark)",
-            }}
-          >
-            {["Timestamp", "Actor", "Action", "Entity", "Changes", "Reason"].map(
-              (h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: "0.75rem 1rem",
-                    textAlign: "left",
-                    fontWeight: 600,
-                    color: "var(--sl-silver)",
-                    letterSpacing: "0.025em",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {h}
-                </th>
-              )
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 ? (
-            <tr>
-              <td
-                colSpan={6}
-                style={{
-                  padding: "3rem 1rem",
-                  textAlign: "center",
-                  color: "var(--sl-mid-gray)",
-                }}
-              >
-                {emptyMessage}
-              </td>
-            </tr>
-          ) : (
-            rows.map((row, i) => (
-              <tr
-                key={row.id}
-                style={{
-                  backgroundColor:
-                    i % 2 === 0 ? "var(--surface-panel)" : "var(--sl-charcoal)",
-                  borderBottom: "1px solid var(--border-dark)",
-                  verticalAlign: "top",
-                }}
-              >
-                {/* Timestamp */}
-                <td
-                  style={{
-                    padding: "0.75rem 1rem",
-                    color: "var(--sl-silver)",
-                    whiteSpace: "nowrap",
-                    fontSize: "0.8125rem",
-                  }}
-                >
-                  <time dateTime={new Date(row.createdAt).toISOString()}>
-                    {new Date(row.createdAt).toLocaleString()}
-                  </time>
-                </td>
-
-                {/* Actor */}
-                <td
-                  style={{
-                    padding: "0.75rem 1rem",
-                    color: "var(--sl-cream)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.8125rem",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {row.actorType === "SYSTEM" ? (
-                    <span style={{ color: "var(--sl-mid-gray)" }}>system</span>
-                  ) : (
-                    row.actorId ?? "—"
-                  )}
-                </td>
-
-                {/* Action */}
-                <td
-                  style={{
-                    padding: "0.75rem 1rem",
-                    color: "var(--sl-lavender)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.8125rem",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {row.action}
-                </td>
-
-                {/* Entity */}
-                <td
-                  style={{
-                    padding: "0.75rem 1rem",
-                    color: "var(--sl-cream)",
-                    fontSize: "0.8125rem",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <div style={{ fontWeight: 500 }}>{row.entityType}</div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--sl-mid-gray)",
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    {row.entityId}
-                  </div>
-                </td>
-
-                {/* Changes — diff summary + disclosure */}
-                <td style={{ padding: "0.75rem 1rem", maxWidth: "24rem" }}>
-                  <details>
-                    <summary
-                      style={{
-                        cursor: "pointer",
-                        color: "var(--sl-silver)",
-                        fontSize: "0.8125rem",
-                        listStyle: "none",
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      {diffSummary(row.before, row.after)}
-                    </summary>
-                    {(row.before || row.after) && (
-                      <pre
-                        style={{
-                          marginTop: "0.5rem",
-                          padding: "0.75rem",
-                          backgroundColor: "var(--sl-obsidian)",
-                          borderRadius: "0.375rem",
-                          border: "1px solid var(--border-dark)",
-                          color: "var(--sl-silver)",
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.75rem",
-                          overflowX: "auto",
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-all",
-                        }}
-                      >
-                        {JSON.stringify({ before: row.before, after: row.after }, null, 2)}
-                      </pre>
-                    )}
-                  </details>
-                </td>
-
-                {/* Reason */}
-                <td
-                  style={{
-                    padding: "0.75rem 1rem",
-                    color: "var(--sl-mid-gray)",
-                    fontSize: "0.8125rem",
-                  }}
-                >
-                  {row.reason ?? "—"}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+    <EditorialTable
+      columns={columns}
+      data={rows as (AuditLogRow & Record<string, unknown>)[]}
+      rowKey={(row) => row.id}
+      emptyMessage={emptyMessage}
+    />
   );
 }

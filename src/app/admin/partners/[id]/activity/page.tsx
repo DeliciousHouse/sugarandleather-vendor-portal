@@ -3,13 +3,10 @@ import { redirect } from "next/navigation";
 import { getRequiredAdmin } from "@/lib/auth";
 import { getPartnerQuarterlyActivityDashboard } from "@/domain/activity/queries";
 import type { SessionUser } from "@/lib/access-control";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
 import QuarterlyActivityCard from "@/components/activity/QuarterlyActivityCard";
 
 export const dynamic = "force-dynamic";
-
-// ---------------------------------------------------------------------------
-// Quarter helpers
-// ---------------------------------------------------------------------------
 
 function currentQuarter(): string {
   const now = new Date();
@@ -17,7 +14,6 @@ function currentQuarter(): string {
   return `${now.getFullYear()}-Q${q}`;
 }
 
-// Returns [current, prev1, ..., prevCount] — (count + 1) quarters total, newest first.
 function buildRecentQuarters(current: string, count: number): string[] {
   const [yearStr, qStr] = current.split("-Q");
   let year = parseInt(yearStr, 10);
@@ -34,10 +30,6 @@ function buildRecentQuarters(current: string, count: number): string[] {
   return quarters;
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export default async function AdminPartnerActivityPage({
   params,
 }: {
@@ -52,12 +44,11 @@ export default async function AdminPartnerActivityPage({
 
   const { id: partnerId } = await params;
 
-  // Compute data for current quarter and previous 3 (4 total)
   const quarters = buildRecentQuarters(currentQuarter(), 3);
   const { partner, quarterData } = await getPartnerQuarterlyActivityDashboard(
     partnerId,
     quarters,
-    session
+    session,
   );
 
   if (!partner) {
@@ -65,38 +56,17 @@ export default async function AdminPartnerActivityPage({
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--surface-root)",
-        padding: "2rem",
-      }}
-    >
-      <div style={{ maxWidth: "72rem", margin: "0 auto" }}>
-        <div style={{ marginBottom: "2rem" }}>
-          <h1
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "2rem",
-              fontWeight: 700,
-              color: "var(--sl-cream)",
-              marginBottom: "0.25rem",
-            }}
-          >
-            Quarterly Activity
-          </h1>
-          <p style={{ fontSize: "0.9375rem", color: "var(--sl-silver)" }}>
-            Partner ID: {partnerId}
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(20rem, 1fr))",
-            gap: "1.5rem",
-          }}
-        >
+    <EditorialPageShell
+      sectionLabel="03 / Partner activity"
+      crumbs={[
+        { label: "Admin", href: "/admin" },
+        { label: partnerId },
+      ]}
+      eyebrow="Quarterly trail"
+      headline="Partner activity"
+      subheadline={`Partner ID · ${partnerId}`}
+      mainChildren={
+        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2">
           {quarterData.map(({ quarter, activity, tierCompliance, snapshot }) => (
             <QuarterlyActivityCard
               key={quarter}
@@ -107,7 +77,7 @@ export default async function AdminPartnerActivityPage({
             />
           ))}
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 }
