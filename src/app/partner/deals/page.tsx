@@ -2,13 +2,16 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { getRequiredActivePartner } from "@/lib/auth";
 import { getPartnerDealsForPartner } from "@/domain/dashboard/queries";
-import DataTable from "@/components/ui/DataTable";
-import StatusPill from "@/components/ui/StatusPill";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
+import EditorialTable, {
+  type ColumnDef,
+} from "@/components/brand/EditorialTable";
+import EditorialStatusPill from "@/components/brand/EditorialStatusPill";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "My Deals — Partner — Sugar & Leather",
+  title: "Deals · Partner · Sugar & Leather",
 };
 
 const DEAL_STATUS_LABELS: Record<string, string> = {
@@ -27,6 +30,32 @@ function formatCents(cents: number, currency = "USD"): string {
   }).format(cents / 100);
 }
 
+type Row = {
+  id: string;
+  product: string;
+  status: string;
+  amount: string;
+  closedAt: string;
+  createdAt: string;
+};
+
+const columns: ColumnDef<Row & Record<string, unknown>>[] = [
+  { key: "product", header: "Product" },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <EditorialStatusPill
+        status={row.status}
+        label={DEAL_STATUS_LABELS[row.status] ?? row.status}
+      />
+    ),
+  },
+  { key: "amount", header: "Amount", align: "right" },
+  { key: "closedAt", header: "Closed", align: "right" },
+  { key: "createdAt", header: "Created", align: "right" },
+];
+
 export default async function PartnerDealsPage() {
   let actor: Awaited<ReturnType<typeof getRequiredActivePartner>>;
   try {
@@ -41,66 +70,47 @@ export default async function PartnerDealsPage() {
 
   const deals = await getPartnerDealsForPartner(actor.partnerId);
 
-  const rows = deals.map((deal) => ({
+  const rows: (Row & Record<string, unknown>)[] = deals.map((deal) => ({
     id: deal.id,
-    referralId: deal.referralId,
-    product: deal.packageCode ? `${deal.productCode} / ${deal.packageCode}` : deal.productCode,
+    product: deal.packageCode
+      ? `${deal.productCode} / ${deal.packageCode}`
+      : deal.productCode,
     status: deal.status,
     amount: formatCents(deal.amountCents, deal.currency),
     closedAt: deal.closedAt ? deal.closedAt.toLocaleDateString() : "—",
     createdAt: deal.createdAt.toLocaleDateString(),
   }));
 
-  type Row = (typeof rows)[number];
-
-  const columns = [
-    { key: "product", header: "Product" },
-    {
-      key: "status",
-      header: "Status",
-      render: (_: unknown, row: Row) => (
-        <StatusPill status={row.status} label={DEAL_STATUS_LABELS[row.status] ?? row.status} />
-      ),
-    },
-    { key: "amount", header: "Amount" },
-    { key: "closedAt", header: "Closed" },
-    { key: "createdAt", header: "Created" },
-  ];
-
   return (
-    <main
-      className="min-h-screen py-10 px-6"
-      style={{ backgroundColor: "var(--surface-root)" }}
-    >
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontSize: "2rem",
-                fontWeight: 700,
-                color: "var(--sl-cream)",
-                marginBottom: "0.25rem",
-              }}
-            >
-              My deals
-            </h1>
-            <p style={{ fontSize: "0.9375rem", color: "var(--sl-silver)" }}>
-              Deals associated with your approved referrals.
-            </p>
-          </div>
-          <p className="text-sm" style={{ color: "var(--sl-mid-gray)" }}>
-            {deals.length} deal{deals.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-
-        <DataTable
-          columns={columns as Parameters<typeof DataTable>[0]["columns"]}
-          data={rows as unknown as Parameters<typeof DataTable>[0]["data"]}
-          emptyMessage="No deals yet. Deals appear once your approved referrals are converted."
+    <EditorialPageShell
+      sectionLabel="02 / Deals"
+      crumbs={[
+        { label: "Partner", href: "/partner" },
+        { label: "Deals" },
+      ]}
+      eyebrow="Closed work"
+      headline={
+        deals.length === 0 ? (
+          "No deals yet"
+        ) : (
+          <>
+            {deals.length} {deals.length === 1 ? "deal" : "deals"}
+          </>
+        )
+      }
+      subheadline={
+        deals.length === 0
+          ? "Approved referrals appear here once converted."
+          : `${deals.filter((d) => d.status === "WON").length} won this period`
+      }
+      mainChildren={
+        <EditorialTable
+          columns={columns}
+          data={rows}
+          rowKey={(row) => row.id}
+          emptyMessage="No deals yet. Approved referrals appear here once converted."
         />
-      </div>
-    </main>
+      }
+    />
   );
 }

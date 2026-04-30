@@ -2,7 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import ReferralForm, { type ReferralFormData } from "@/components/referrals/ReferralForm";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
+import ReferralForm, {
+  type ReferralFormData,
+} from "@/components/referrals/ReferralForm";
 import { submitReferralAction } from "../actions";
 
 export default function NewReferralPage() {
@@ -23,45 +26,34 @@ export default function NewReferralPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--surface-root)",
-        padding: "2rem",
-      }}
-    >
-      <div style={{ maxWidth: "40rem", margin: "0 auto" }}>
-        <h1
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "2rem",
-            fontWeight: 700,
-            color: "var(--sl-cream)",
-            marginBottom: "2rem",
-          }}
-        >
-          Submit a referral
-        </h1>
-
-        {errorMessage && (
-          <div
-            role="alert"
-            style={{
-              padding: "0.75rem 1rem",
-              marginBottom: "1.5rem",
-              backgroundColor: "var(--status-danger-bg)",
-              border: "1px solid var(--status-danger-border)",
-              borderRadius: "0.5rem",
-              color: "var(--status-danger-text)",
-              fontSize: "0.9375rem",
-            }}
-          >
-            {errorMessage}
-          </div>
-        )}
-
-        <ReferralForm onSubmit={handleSubmit} />
-      </div>
-    </div>
+    <EditorialPageShell
+      sectionLabel="03 / New referral"
+      crumbs={[
+        { label: "Referrals", href: "/partner/referrals" },
+        { label: "New" },
+      ]}
+      eyebrow="Submit a referral"
+      headline={
+        <>
+          One lead.
+          <br />
+          One submission.
+        </>
+      }
+      subheadline="Approved within 2-3 business days"
+      mainChildren={
+        <div className="max-w-2xl">
+          {errorMessage ? (
+            <div
+              role="alert"
+              className="mb-8 border-l-2 border-[var(--status-danger-text)] pl-4 font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--status-danger-text)]"
+            >
+              {errorMessage}
+            </div>
+          ) : null}
+          <ReferralForm onSubmit={handleSubmit} />
+        </div>
+      }
+    />
   );
 }

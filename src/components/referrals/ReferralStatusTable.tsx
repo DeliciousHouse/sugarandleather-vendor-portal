@@ -1,5 +1,8 @@
 import React from "react";
-import StatusPill from "@/components/ui/StatusPill";
+import EditorialTable, {
+  type ColumnDef,
+} from "@/components/brand/EditorialTable";
+import EditorialStatusPill from "@/components/brand/EditorialStatusPill";
 
 export type ReferralRow = {
   id: string;
@@ -19,107 +22,80 @@ const STATUS_LABELS: Record<string, string> = {
   CONVERTED: "Converted",
   LOST: "Lost",
   FIRST_ATTRIBUTED: "Attributed",
-  DUPLICATE_NO_CREDIT: "Duplicate — no credit",
+  DUPLICATE_NO_CREDIT: "Duplicate · no credit",
 };
+
+type RowRecord = ReferralRow & Record<string, unknown>;
+
+const columns: ColumnDef<RowRecord>[] = [
+  {
+    key: "leadName",
+    header: "Lead",
+    render: (row) => (
+      <div className="flex flex-col">
+        <span className="font-body text-[var(--sl-cream)]">{row.leadName}</span>
+        {row.leadEmail ? (
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+            {row.leadEmail}
+          </span>
+        ) : null}
+      </div>
+    ),
+  },
+  {
+    key: "leadCompany",
+    header: "Company",
+    render: (row) => row.leadCompany ?? "—",
+  },
+  {
+    key: "country",
+    header: "Country",
+    render: (row) => row.country ?? "—",
+  },
+  {
+    key: "attributionStatus",
+    header: "Attribution",
+    render: (row) => (
+      <EditorialStatusPill
+        status={row.attributionStatus}
+        label={STATUS_LABELS[row.attributionStatus] ?? row.attributionStatus}
+        tone={row.attributionStatus === "FIRST_ATTRIBUTED" ? "success" : "neutral"}
+      />
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <EditorialStatusPill
+        status={row.status}
+        label={STATUS_LABELS[row.status] ?? row.status}
+      />
+    ),
+  },
+  {
+    key: "submittedAt",
+    header: "Submitted",
+    align: "right",
+    render: (row) => (
+      <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--sl-silver)]">
+        {new Date(row.submittedAt).toLocaleDateString()}
+      </span>
+    ),
+  },
+];
 
 type Props = {
   referrals: ReferralRow[];
 };
 
 export default function ReferralStatusTable({ referrals }: Props) {
-  if (referrals.length === 0) {
-    return (
-      <div
-        style={{
-          padding: "3rem 1rem",
-          textAlign: "center",
-          color: "var(--sl-mid-gray)",
-          fontSize: "0.9375rem",
-        }}
-      >
-        No referrals submitted yet.
-      </div>
-    );
-  }
-
   return (
-    <div
-      style={{
-        width: "100%",
-        overflowX: "auto",
-        borderRadius: "0.75rem",
-        border: "1px solid var(--border-dark)",
-      }}
-    >
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
-        <thead>
-          <tr
-            style={{
-              backgroundColor: "var(--sl-obsidian)",
-              borderBottom: "1px solid var(--border-dark)",
-            }}
-          >
-            {["Lead", "Company", "Country", "Attribution", "Status", "Submitted"].map(
-              (header) => (
-                <th
-                  key={header}
-                  style={{
-                    padding: "0.75rem 1rem",
-                    textAlign: "left",
-                    fontWeight: 600,
-                    color: "var(--sl-silver)",
-                    letterSpacing: "0.025em",
-                  }}
-                >
-                  {header}
-                </th>
-              )
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {referrals.map((row, i) => (
-            <tr
-              key={row.id}
-              style={{
-                backgroundColor:
-                  i % 2 === 0 ? "var(--surface-panel)" : "var(--sl-charcoal)",
-                borderBottom: "1px solid var(--border-dark)",
-              }}
-            >
-              <td style={{ padding: "0.75rem 1rem", color: "var(--sl-cream)" }}>
-                <div style={{ fontWeight: 500 }}>{row.leadName}</div>
-                {row.leadEmail && (
-                  <div style={{ fontSize: "0.8125rem", color: "var(--sl-silver)" }}>
-                    {row.leadEmail}
-                  </div>
-                )}
-              </td>
-              <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)" }}>
-                {row.leadCompany ?? "—"}
-              </td>
-              <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)" }}>
-                {row.country ?? "—"}
-              </td>
-              <td style={{ padding: "0.75rem 1rem" }}>
-                <StatusPill
-                  status={row.attributionStatus}
-                  label={STATUS_LABELS[row.attributionStatus] ?? row.attributionStatus}
-                />
-              </td>
-              <td style={{ padding: "0.75rem 1rem" }}>
-                <StatusPill
-                  status={row.status}
-                  label={STATUS_LABELS[row.status] ?? row.status}
-                />
-              </td>
-              <td style={{ padding: "0.75rem 1rem", color: "var(--sl-silver)", whiteSpace: "nowrap" }}>
-                {new Date(row.submittedAt).toLocaleDateString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <EditorialTable
+      columns={columns}
+      data={referrals as RowRecord[]}
+      rowKey={(row) => row.id}
+      emptyMessage="No referrals submitted yet."
+    />
   );
 }
