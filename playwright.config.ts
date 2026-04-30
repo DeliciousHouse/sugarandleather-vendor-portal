@@ -1,4 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
+
+// Load .env.local so DATABASE_URL and AUTH_SECRET are available to test helpers
+loadEnvConfig(process.cwd());
 
 const port = Number(process.env.E2E_PORT ?? 3100);
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
@@ -21,7 +25,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `NODE_ENV=development npx next dev -p ${port}`,
+    // --webpack: Turbopack crashes in worktrees because node_modules is a symlink
+    command: `NODE_ENV=development npx next dev --webpack -p ${port}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
