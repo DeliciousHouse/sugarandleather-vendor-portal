@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getRequiredActivePartner } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getPartnerReferrals } from "@/domain/referrals/queries";
+import { getPartnerReferralStatusCountsForPartner } from "@/domain/dashboard/queries";
 import EditorialPageShell from "@/components/brand/EditorialPageShell";
 import ReferralStatusTable from "@/components/referrals/ReferralStatusTable";
 
@@ -25,14 +26,20 @@ export default async function PartnerReferralsPage() {
     redirect("/partner/pending");
   }
 
-  const referrals = await getPartnerReferrals(
-    prisma as unknown as Parameters<typeof getPartnerReferrals>[0],
-    actor.partnerId,
-  );
+  const [referrals, counts] = await Promise.all([
+    getPartnerReferrals(
+      prisma as unknown as Parameters<typeof getPartnerReferrals>[0],
+      actor.partnerId,
+    ),
+    getPartnerReferralStatusCountsForPartner(actor.partnerId),
+  ]);
 
-  const total = referrals.length;
-  const pending = referrals.filter((r) => r.status === "PENDING_REVIEW").length;
-  const converted = referrals.filter((r) => r.status === "CONVERTED").length;
+  // Aggregate counts across ALL referrals (not just the displayed page).
+  const total = counts.total;
+  const pending = counts.PENDING_REVIEW;
+  const converted = counts.CONVERTED;
+  const showing = referrals.length;
+  const hasMore = total > showing;
 
   return (
     <EditorialPageShell
@@ -55,7 +62,7 @@ export default async function PartnerReferralsPage() {
       }
       subheadline={
         total > 0
-          ? `${pending} pending · ${converted} converted`
+          ? `${pending} pending · ${converted} converted${hasMore ? ` · showing latest ${showing}` : ""}`
           : "Submit your first to begin."
       }
       actions={
