@@ -4,6 +4,29 @@ All notable changes to the Sugar & Leather Vendor Portal are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project uses [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-04-30
+
+### Added
+- Editorial Obsidian rolled out across the entire portal. All 18 working surfaces (admin lists + details, partner working surfaces, public apply) plus the 4 hero pages (`/`, `/login`, `/admin`, `/partner`) now share one design language.
+- `EditorialFilterBar` and `EditorialPagination` primitives extracted while porting admin list screens.
+- `tests/e2e/editorial-rollout.spec.ts` — public surface smoke spec covering `/`, `/login`, `/apply`. Verifies pages return 200, key editorial labels render, and there are no console errors on initial render.
+- `DESIGN.md` "Approved Mockups & Implementation Status" table updated with all 22 screens. Canonical references designated for the four screen variants (list, form, detail-8/4, detail-6/6).
+- `CLAUDE.md` Design system section expanded with the primitive inventory + canonical reference paths.
+
+### Changed
+- Partner working surfaces (`/partner/referrals`, `/partner/referrals/new`, `/partner/deals`, `/partner/earnings`) ported to `EditorialPageShell`. `ReferralStatusTable`, `ReferralForm`, and `EarningsTimeline` rewritten internally — call site signatures unchanged.
+- Public apply (`/apply`) ported. `ApplicationForm` rewritten with `EditorialField` wrappers and mono caps section labels.
+- All 8 admin list screens ported (applications, agreements, referrals, deals, payouts, audit, notifications, tiers). Status pills via `EditorialStatusPill`, filter bars via `EditorialFilterBar`, pagination via `EditorialPagination`.
+- All 6 admin detail screens ported. `ApplicationReviewPanel`, `AdminReferralPanel`, `AuditLogTable`, and `NotificationList` rewritten internally to use the editorial primitives.
+- `/admin/payouts/[id]/PayoutBatchActions` rewritten to use `ui/Button` (cream primary, semantic danger). Removed inline `#fff`/`#dc2626` style violations.
+- `/admin/payouts/page.tsx` "Create payout batch" CTA moved out of the lavender-bg violation into the page actions slot using `ui/Button`.
+
+### Fixed
+- Cleared the token allowlist for `/admin/tiers/page.tsx` after porting away from inline hex status indicators.
+
+### Out of scope (carried forward)
+- `src/components/tiers/TierRuleEditor.tsx` retains inline hex codes for status indicators. Tracked in `scripts/.tokencheck-allowlist` for a focused follow-up PR. Used inside `/admin/tiers/[id]/page.tsx`, which is also allowlisted because it imports the editor.
+
 ## [0.2.0] - 2026-04-30
 
 ### Added

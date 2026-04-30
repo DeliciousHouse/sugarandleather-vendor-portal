@@ -223,16 +223,52 @@ If your design has any of these, it's wrong:
 - [ ] Animated entrance on page load
 - [ ] More than one lavender element in a single region
 
-## Approved Mockups
+## Approved Mockups & Implementation Status
 
-Visual reference for screens that haven't been implemented yet. All approved via `/design-shotgun`. Same compositional signature across every screen: asymmetric 8/4 split, 80–96px Cormorant hero with one lavender-underlined keyword, mono `01/` and `02/` pagination labels, hairline rules, "Built. Not given." footer, mono underline-link CTAs, no card chrome, no metric grids.
+Same compositional signature across every screen: asymmetric 8/4 split (or 6/6 for record-detail), 80–96px Cormorant hero with one lavender-underlined keyword, mono `01/` and `02/` pagination labels, hairline rules, "Built. Not given." footer, mono underline-link CTAs, no card chrome, no metric grids.
 
-| Screen | Approved file |
-|--------|---------------|
-| Public landing | Implemented in `src/app/page.tsx` (the template all other screens follow) |
-| Admin dashboard | `~/.gstack/projects/sugar-and-leather-AI-sugar-and-leather-vendor-portal/designs/admin-dashboard-20260429/variant-D.png` |
-| Partner dashboard | `~/.gstack/projects/sugar-and-leather-AI-sugar-and-leather-vendor-portal/designs/partner-dashboard-20260429/variant-A.png` |
-| Login | `~/.gstack/projects/sugar-and-leather-AI-sugar-and-leather-vendor-portal/designs/login-20260429/variant-A.png` |
+**Phases A–F complete (2026-04-30). Editorial Obsidian rolled out across the entire portal.**
+
+### Marketing surfaces (via `EditorialShell`)
+
+| Screen | Status |
+|--------|--------|
+| Public landing `/` | ✅ implemented (canonical reference) |
+| Login `/login` | ✅ implemented |
+
+### Authenticated working surfaces (via `EditorialPageShell`)
+
+| Screen | Variant | Status |
+|--------|---------|--------|
+| `/admin` | Magazine layout (uses `EditorialShell`) | ✅ |
+| `/admin/applications` | List | ✅ |
+| `/admin/applications/[id]` | Detail (8/4) | ✅ |
+| `/admin/agreements` | List | ✅ |
+| `/admin/referrals` | List | ✅ |
+| `/admin/referrals/[id]` | Detail (8/4) | ✅ |
+| `/admin/deals` | List | ✅ |
+| `/admin/deals/[id]` | Detail (8/4) | ✅ |
+| `/admin/payouts` | List | ✅ |
+| `/admin/payouts/[id]` | Detail (8/4) | ✅ |
+| `/admin/audit` | List | ✅ |
+| `/admin/notifications` | List | ✅ |
+| `/admin/tiers` | List | ✅ |
+| `/admin/tiers/[id]` | Detail (6/6) | ✅ canonical reference for 6/6 |
+| `/admin/partners/[id]/activity` | Detail (8/4) | ✅ |
+| `/partner` | Magazine layout (uses `EditorialShell`) | ✅ |
+| `/partner/referrals` | List | ✅ |
+| `/partner/referrals/new` | Form | ✅ |
+| `/partner/deals` | List | ✅ |
+| `/partner/earnings` | List + summary | ✅ |
+| `/apply` | Form | ✅ |
+
+### Canonical references (copy these)
+
+- **List screen pattern:** `src/app/admin/applications/page.tsx` — filter bar, table with status pills, pagination.
+- **Form screen pattern:** `src/app/apply/page.tsx` + `src/components/applications/ApplicationForm.tsx` — five mono-numbered sections, EditorialField wrappers, hairline-bottom inputs.
+- **Detail screen 8/4:** `src/app/admin/applications/[id]/page.tsx` + `src/components/applications/ApplicationReviewPanel.tsx`.
+- **Detail screen 6/6:** `src/app/admin/tiers/[id]/page.tsx` — equally dense main + side panels.
+- **Hero pattern:** `src/app/page.tsx` — 96px Cormorant headline with single lavender-underlined keyword.
 
 **Translating mockups to code.** AI mockups occasionally render headlines with end punctuation, render typos, or skip the lavender underline. These are model artifacts, not design intent. When implementing in TSX:
 - Strip end-of-headline periods (brand rule: sentence case, no end punctuation).
