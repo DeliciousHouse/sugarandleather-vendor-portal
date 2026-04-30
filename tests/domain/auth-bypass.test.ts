@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   getBypassAdminUser,
@@ -12,6 +12,33 @@ describe("local portal auth bypass", () => {
     expect(isPortalAuthDisabled({ DISABLE_PORTAL_AUTH: "false" })).toBe(false);
     expect(isPortalAuthDisabled({ DISABLE_PORTAL_AUTH: "TRUE" })).toBe(false);
     expect(isPortalAuthDisabled({ DISABLE_PORTAL_AUTH: "true" })).toBe(true);
+  });
+
+  it("hard-ignores DISABLE_PORTAL_AUTH=true when NODE_ENV=production", () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(
+      isPortalAuthDisabled({
+        DISABLE_PORTAL_AUTH: "true",
+        NODE_ENV: "production",
+      }),
+    ).toBe(false);
+    expect(errSpy).toHaveBeenCalled();
+    errSpy.mockRestore();
+  });
+
+  it("allows the bypass in non-production environments", () => {
+    expect(
+      isPortalAuthDisabled({
+        DISABLE_PORTAL_AUTH: "true",
+        NODE_ENV: "development",
+      }),
+    ).toBe(true);
+    expect(
+      isPortalAuthDisabled({
+        DISABLE_PORTAL_AUTH: "true",
+        NODE_ENV: "test",
+      }),
+    ).toBe(true);
   });
 
   it("provides separate admin and partner demo sessions", () => {
