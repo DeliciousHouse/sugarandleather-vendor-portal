@@ -4,10 +4,14 @@ import { redirect } from "next/navigation";
 import { getRequiredActivePartner } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getPartnerReferrals } from "@/domain/referrals/queries";
+import EditorialPageShell from "@/components/brand/EditorialPageShell";
 import ReferralStatusTable from "@/components/referrals/ReferralStatusTable";
-import Button from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Referrals · Partner · Sugar & Leather",
+};
 
 export default async function PartnerReferralsPage() {
   let actor: Awaited<ReturnType<typeof getRequiredActivePartner>>;
@@ -23,49 +27,50 @@ export default async function PartnerReferralsPage() {
 
   const referrals = await getPartnerReferrals(
     prisma as unknown as Parameters<typeof getPartnerReferrals>[0],
-    actor.partnerId
+    actor.partnerId,
   );
 
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--surface-root)",
-        padding: "2rem",
-      }}
-    >
-      <div style={{ maxWidth: "72rem", margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "2rem",
-          }}
-        >
-          <div>
-            <h1
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontSize: "2rem",
-                fontWeight: 700,
-                color: "var(--sl-cream)",
-                marginBottom: "0.25rem",
-              }}
-            >
-              My referrals
-            </h1>
-            <p style={{ fontSize: "0.9375rem", color: "var(--sl-silver)" }}>
-              Referrals are counted only after admin approval.
-            </p>
-          </div>
-          <Link href="/partner/referrals/new">
-            <Button>Submit referral</Button>
-          </Link>
-        </div>
+  const total = referrals.length;
+  const pending = referrals.filter((r) => r.status === "PENDING_REVIEW").length;
+  const converted = referrals.filter((r) => r.status === "CONVERTED").length;
 
-        <ReferralStatusTable referrals={referrals} />
-      </div>
-    </div>
+  return (
+    <EditorialPageShell
+      sectionLabel="02 / Referrals"
+      crumbs={[
+        { label: "Partner", href: "/partner" },
+        { label: "Referrals" },
+      ]}
+      eyebrow="Your activity"
+      headline={
+        <>
+          {total === 0 ? (
+            "No referrals yet"
+          ) : (
+            <>
+              {total} {total === 1 ? "referral" : "referrals"}
+            </>
+          )}
+        </>
+      }
+      subheadline={
+        total > 0
+          ? `${pending} pending · ${converted} converted`
+          : "Submit your first to begin."
+      }
+      actions={
+        <Link
+          href="/partner/referrals/new"
+          className="group inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--sl-cream)] hover:text-[var(--sl-lavender)] transition-colors"
+        >
+          <span>Begin referral</span>
+          <span
+            aria-hidden
+            className="h-px w-10 bg-[var(--sl-cream)] transition-all group-hover:w-16 group-hover:bg-[var(--sl-lavender)]"
+          />
+        </Link>
+      }
+      mainChildren={<ReferralStatusTable referrals={referrals} />}
+    />
   );
 }
