@@ -11,14 +11,14 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
   primary: {
-    backgroundColor: "var(--sl-lavender)",
+    backgroundColor: "var(--sl-cream)",
     color: "var(--sl-obsidian)",
-    border: "1px solid transparent",
+    border: "1px solid var(--sl-cream)",
   },
   secondary: {
-    backgroundColor: "var(--sl-charcoal)",
+    backgroundColor: "transparent",
     color: "var(--sl-cream)",
-    border: "1px solid var(--border-dark)",
+    border: "1px solid var(--sl-cream)",
   },
   ghost: {
     backgroundColor: "transparent",
@@ -26,16 +26,16 @@ const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
     border: "1px solid var(--border-dark)",
   },
   danger: {
-    backgroundColor: "var(--status-danger-strong-bg)",
-    color: "var(--sl-warm-white)",
-    border: "1px solid transparent",
+    backgroundColor: "transparent",
+    color: "var(--status-danger-text)",
+    border: "1px solid var(--status-danger-border)",
   },
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "px-3 py-1.5 text-sm rounded",
-  md: "px-4 py-2 text-base rounded-md",
-  lg: "px-6 py-3 text-lg rounded-lg",
+  sm: "px-4 py-2 text-[10px] tracking-[0.32em]",
+  md: "px-6 py-3 text-[11px] tracking-[0.32em]",
+  lg: "px-8 py-4 text-[12px] tracking-[0.32em]",
 };
 
 export default function Button({
@@ -48,7 +48,7 @@ export default function Button({
   ...rest
 }: ButtonProps) {
   const baseClasses =
-    "inline-flex items-center justify-center font-medium transition-opacity cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sl-lavender)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sl-obsidian)]";
+    "inline-flex items-center justify-center font-mono uppercase rounded-sm transition-opacity cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sl-lavender)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sl-obsidian)]";
 
   return (
     <button
