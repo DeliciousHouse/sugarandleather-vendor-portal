@@ -63,6 +63,7 @@ export type AdminWorkQueueCounts = {
   agreementsPending: number;
   referralsPending: number;
   commissionsPayable: number;
+  payableAmountCents: number;
 };
 
 export type AdminAuditEventRow = {
@@ -251,21 +252,36 @@ export function summarisePartnerEarnings(
 export async function getAdminWorkQueueCounts(
   db: AdminDashboardDb
 ): Promise<AdminWorkQueueCounts> {
-  const [applicationsPending, agreementsPending, referralsPending, commissionsPayable] =
-    await Promise.all([
-      db.partnerApplication.count({
-        where: { status: { in: ["SUBMITTED", "IN_REVIEW"] } },
-      }),
-      db.agreement.count({ where: { status: "SENT" } }),
-      db.referral.count({ where: { status: "PENDING_REVIEW" } }),
-      db.commissionEvent.count({ where: { status: "PAYABLE" } }),
-    ]);
+  const [
+    applicationsPending,
+    agreementsPending,
+    referralsPending,
+    commissionsPayable,
+    payableEvents,
+  ] = await Promise.all([
+    db.partnerApplication.count({
+      where: { status: { in: ["SUBMITTED", "IN_REVIEW"] } },
+    }),
+    db.agreement.count({ where: { status: "SENT" } }),
+    db.referral.count({ where: { status: "PENDING_REVIEW" } }),
+    db.commissionEvent.count({ where: { status: "PAYABLE" } }),
+    db.commissionEvent.findMany({
+      where: { status: "PAYABLE" },
+      select: { amountCents: true },
+    }),
+  ]);
+
+  const payableAmountCents = payableEvents.reduce(
+    (sum, e) => sum + e.amountCents,
+    0,
+  );
 
   return {
     applicationsPending,
     agreementsPending,
     referralsPending,
     commissionsPayable,
+    payableAmountCents,
   };
 }
 

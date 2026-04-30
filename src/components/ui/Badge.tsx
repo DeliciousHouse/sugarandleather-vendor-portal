@@ -10,9 +10,9 @@ interface BadgeProps {
 
 const variantStyles: Record<BadgeVariant, React.CSSProperties> = {
   default: {
-    backgroundColor: "var(--accent-bg-subtle)",
-    color: "var(--sl-lavender)",
-    border: "1px solid var(--accent-border-subtle)",
+    backgroundColor: "var(--silver-bg-subtle)",
+    color: "var(--sl-silver)",
+    border: "1px solid var(--silver-border-subtle)",
   },
   success: {
     backgroundColor: "var(--status-success-bg)",
@@ -43,7 +43,7 @@ export default function Badge({
 }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${className}`}
+      className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.24em] ${className}`}
       style={variantStyles[variant]}
     >
       {children}

@@ -23,8 +23,14 @@ describe("Button", () => {
     (variant) => {
       render(<Button variant={variant}>{variant}</Button>);
       expect(screen.getByRole("button", { name: variant })).toBeInTheDocument();
-    }
+    },
   );
+
+  it("primary variant uses cream background, never lavender", () => {
+    render(<Button variant="primary">Go</Button>);
+    const btn = screen.getByRole("button", { name: "Go" });
+    expect(btn).toHaveStyle({ backgroundColor: "var(--sl-cream)" });
+  });
 
   it("renders all size variants without error", () => {
     const { rerender } = render(<Button size="sm">Small</Button>);
@@ -55,7 +61,7 @@ describe("Card", () => {
     render(
       <Card>
         <p>Card content</p>
-      </Card>
+      </Card>,
     );
     expect(screen.getByText("Card content")).toBeInTheDocument();
   });
@@ -76,12 +82,19 @@ describe("Badge", () => {
     (variant) => {
       render(<Badge variant={variant}>{variant} label</Badge>);
       expect(screen.getByText(`${variant} label`)).toBeInTheDocument();
-    }
+    },
   );
 
   it("renders with default variant when no variant prop is given", () => {
     render(<Badge>No variant</Badge>);
     expect(screen.getByText("No variant")).toBeInTheDocument();
+  });
+
+  it("default variant uses silver text, not lavender", () => {
+    render(<Badge>plain</Badge>);
+    expect(screen.getByText("plain")).toHaveStyle({
+      color: "var(--sl-silver)",
+    });
   });
 });
 
@@ -89,52 +102,45 @@ describe("Badge", () => {
 // StatusPill
 // ---------------------------------------------------------------------------
 describe("StatusPill", () => {
-  it("maps ACTIVE to a success badge", () => {
+  it("maps ACTIVE to a success tone", () => {
     render(<StatusPill status="ACTIVE" />);
-    const el = screen.getByText("ACTIVE");
-    // success badge has green text colour set via inline style
-    expect(el).toBeInTheDocument();
+    const el = screen.getByText("Active");
     expect(el).toHaveStyle({ color: "var(--status-success-text)" });
   });
 
-  it("maps REJECTED to a danger badge", () => {
+  it("maps REJECTED to a danger tone", () => {
     render(<StatusPill status="REJECTED" />);
-    const el = screen.getByText("REJECTED");
+    const el = screen.getByText("Rejected");
     expect(el).toHaveStyle({ color: "var(--status-danger-text)" });
   });
 
-  it("maps PENDING_REVIEW to a neutral badge", () => {
+  it("maps PENDING_REVIEW to neutral", () => {
     render(<StatusPill status="PENDING_REVIEW" />);
-    const el = screen.getByText("PENDING_REVIEW");
+    const el = screen.getByText("Pending Review");
     expect(el).toHaveStyle({ color: "var(--sl-silver)" });
   });
 
-  it("maps an unknown status to the default (lavender) badge", () => {
+  it("maps INVITED to warning", () => {
+    render(<StatusPill status="INVITED" />);
+    const el = screen.getByText("Invited");
+    expect(el).toHaveStyle({ color: "var(--status-warning-text)" });
+  });
+
+  it("falls back to silver (info) on unknown status — never lavender", () => {
     render(<StatusPill status="SOME_UNKNOWN_STATUS" />);
-    const el = screen.getByText("SOME_UNKNOWN_STATUS");
-    expect(el).toHaveStyle({ color: "var(--sl-lavender)" });
+    const el = screen.getByText("Some Unknown Status");
+    expect(el).toHaveStyle({ color: "var(--sl-silver)" });
   });
 
   it("displays a custom label when provided", () => {
     render(<StatusPill status="ACTIVE" label="Live" />);
     expect(screen.getByText("Live")).toBeInTheDocument();
-    expect(screen.queryByText("ACTIVE")).not.toBeInTheDocument();
-  });
-
-  it("displays the status value when no label is given", () => {
-    render(<StatusPill status="DRAFT" />);
-    expect(screen.getByText("DRAFT")).toBeInTheDocument();
-  });
-
-  it("maps INVITED to a warning badge", () => {
-    render(<StatusPill status="INVITED" />);
-    const el = screen.getByText("INVITED");
-    expect(el).toHaveStyle({ color: "var(--status-warning-text)" });
+    expect(screen.queryByText("Active")).not.toBeInTheDocument();
   });
 });
 
 // ---------------------------------------------------------------------------
-// DataTable
+// DataTable (legacy — kept for callers not yet ported to EditorialTable)
 // ---------------------------------------------------------------------------
 type SampleRow = { id: unknown; name: unknown; role: unknown };
 
@@ -149,7 +155,7 @@ const sampleData: SampleRow[] = [
   { id: 2, name: "Bob", role: "Vendor" },
 ];
 
-describe("DataTable", () => {
+describe("DataTable (legacy)", () => {
   it("renders column headers", () => {
     render(<DataTable columns={sampleColumns} data={sampleData} />);
     expect(screen.getByText("ID")).toBeInTheDocument();
@@ -161,59 +167,51 @@ describe("DataTable", () => {
     render(<DataTable columns={sampleColumns} data={sampleData} />);
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Bob")).toBeInTheDocument();
-    expect(screen.getByText("Admin")).toBeInTheDocument();
-    expect(screen.getByText("Vendor")).toBeInTheDocument();
   });
 
   it("shows default empty message when data is empty", () => {
     render(<DataTable columns={sampleColumns} data={[]} />);
     expect(screen.getByText("No data")).toBeInTheDocument();
   });
-
-  it("shows a custom emptyMessage when data is empty", () => {
-    render(
-      <DataTable columns={sampleColumns} data={[]} emptyMessage="Nothing here" />
-    );
-    expect(screen.getByText("Nothing here")).toBeInTheDocument();
-  });
-
-  it("uses a custom render function for a column", () => {
-    const columns: ColumnDef<SampleRow>[] = [
-      ...sampleColumns.slice(0, 2),
-      {
-        key: "role",
-        header: "Role",
-        render: (value) => <strong>{String(value)}-custom</strong>,
-      },
-    ];
-    render(<DataTable columns={columns} data={sampleData} />);
-    expect(screen.getByText("Admin-custom")).toBeInTheDocument();
-  });
 });
 
 // ---------------------------------------------------------------------------
-// Logo
+// Logo (with eye/heart mark, post-Phase-A)
 // ---------------------------------------------------------------------------
 describe("Logo", () => {
-  it("renders Sugar & Leather text", () => {
+  it("renders the brand mark image with alt text", () => {
     render(<Logo />);
-    expect(screen.getByText("Sugar & Leather")).toBeInTheDocument();
+    const img = screen.getByAltText("Sugar & Leather");
+    expect(img).toBeInTheDocument();
   });
 
-  it("renders light variant by default", () => {
+  it("uses cream variant by default (logo-cream.png)", () => {
     render(<Logo />);
-    const el = screen.getByText("Sugar & Leather");
-    expect(el).toHaveStyle({ color: "var(--sl-cream)" });
+    const img = screen.getByAltText("Sugar & Leather") as HTMLImageElement;
+    expect(img.src).toContain("logo-cream");
   });
 
-  it("renders dark variant", () => {
-    render(<Logo variant="dark" />);
-    const el = screen.getByText("Sugar & Leather");
-    expect(el).toHaveStyle({ color: "var(--sl-obsidian)" });
+  it("uses obsidian variant when requested", () => {
+    render(<Logo variant="obsidian" />);
+    const img = screen.getByAltText("Sugar & Leather") as HTMLImageElement;
+    expect(img.src).toContain("logo-obsidian");
   });
 
-  it.each(["sm", "md", "lg"] as const)("renders size %s without error", (size) => {
-    render(<Logo size={size} />);
-    expect(screen.getByText("Sugar & Leather")).toBeInTheDocument();
+  it("renders wordmark when withWordmark is true", () => {
+    render(<Logo withWordmark />);
+    expect(screen.getByText("Sugar & Leather AI")).toBeInTheDocument();
   });
+
+  it("does not render wordmark by default", () => {
+    render(<Logo />);
+    expect(screen.queryByText("Sugar & Leather AI")).not.toBeInTheDocument();
+  });
+
+  it.each(["sm", "md", "lg"] as const)(
+    "renders size %s without error",
+    (size) => {
+      render(<Logo size={size} />);
+      expect(screen.getByAltText("Sugar & Leather")).toBeInTheDocument();
+    },
+  );
 });

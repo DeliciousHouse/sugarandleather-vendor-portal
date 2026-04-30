@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { isPortalAuthDisabled } from "./lib/auth-bypass";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "./lib/session";
 
 const AUTH_SECRET = process.env.AUTH_SECRET ?? "development-secret-change-me-at-least-32-chars";
@@ -13,6 +14,10 @@ function loginRedirect(request: NextRequest, reason?: string) {
 }
 
 export async function proxy(request: NextRequest) {
+  if (isPortalAuthDisabled()) {
+    return NextResponse.next();
+  }
+
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const user = await verifySessionToken(token, AUTH_SECRET);
