@@ -1,0 +1,444 @@
+// Sugar & Leather Vendor Portal — Prisma Schema
+// Full model contract defined in docs/plans/2026-04-29-affiliate-vendor-management-mvp.md
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  PARTNER
+}
+
+enum AccountStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  IN_REVIEW
+  REJECTED
+  APPROVED_PENDING_AGREEMENT
+  AGREEMENT_SENT
+  SIGNED
+  ACTIVATED
+}
+
+enum AgreementStatus {
+  DRAFT
+  SENT
+  SIGNED
+  VOIDED
+  EXPIRED
+}
+
+enum ReferralStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  CONVERTED
+  LOST
+}
+
+enum AttributionStatus {
+  FIRST_ATTRIBUTED
+  DUPLICATE_NO_CREDIT
+}
+
+enum DealStatus {
+  OPEN
+  WON
+  LOST
+  CANCELLED
+}
+
+enum CommissionKind {
+  UPFRONT
+  TRAILING
+  CLAWBACK
+  ADJUSTMENT
+}
+
+enum CommissionStatus {
+  STAGED
+  PAYABLE
+  PAID
+  VOIDED
+  CLAWED_BACK
+}
+
+enum PayoutStatus {
+  DRAFT
+  PROCESSING
+  PAID
+  VOIDED
+}
+
+enum NotificationChannel {
+  EMAIL
+  IN_APP
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  FAILED
+  READ
+  DISMISSED
+}
+
+enum ActorType {
+  USER
+  SYSTEM
+}
+
+// ---------------------------------------------------------------------------
+// Auth and partner records
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  name      String?
+  role      UserRole
+  status    AccountStatus @default(INVITED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  partner Partner?
+}
+
+model PartnerApplication {
+  id                String            @id @default(cuid())
+  status            ApplicationStatus @default(SUBMITTED)
+  fullName          String
+  email             String
+  phone             String?
+  company           String?
+  country           String
+  promotionChannels String[]
+  aiTechExperience  String
+  audience          String
+  subjectiveAnswers Json
+  reviewedById      String?
+  reviewedAt        DateTime?
+  reviewNotes       String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model Partner {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  applicationId String?       @unique
+  tierId        String
+  status        AccountStatus @default(INVITED)
+  displayName   String
+  company       String?
+  country       String?
+  activatedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  tier Tier @relation(fields: [tierId], references: [id])
+
+  @@index([tierId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Product / package catalog
+// ---------------------------------------------------------------------------
+
+model Product {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductPackage {
+  id          String   @id @default(cuid())
+  productCode String
+  code        String
+  name        String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([productCode, code])
+}
+
+// ---------------------------------------------------------------------------
+// Agreements
+// ---------------------------------------------------------------------------
+
+model Agreement {
+  id                 String          @id @default(cuid())
+  applicationId      String?
+  partnerId          String?
+  status             AgreementStatus @default(DRAFT)
+  ndaVersion         String
+  agreementVersion   String
+  packetUrl          String?
+  sentAt             DateTime?
+  sentById           String?
+  signedAt           DateTime?
+  signedById         String?
+  signedEvidenceUrl  String?
+  signedEvidenceNote String?
+  voidReason         String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([status, sentAt])
+  @@index([partnerId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Tiers and commission rules
+// ---------------------------------------------------------------------------
+
+model Tier {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  partners Partner[]
+  rules    CommissionRule[]
+}
+
+model CommissionRule {
+  id                    String         @id @default(cuid())
+  tierId                String
+  productCode           String
+  packageCode           String?
+  kind                  CommissionKind
+  percentBps            Int?
+  flatAmountCents       Int?
+  currency              String         @default("USD")
+  trailingMonths        Int?
+  payoutDelayDays       Int            @default(30)
+  clawbackWindowDays    Int            @default(90)
+  quarterlyMinReferrals Int?
+  startsAt              DateTime       @default(now())
+  endsAt                DateTime?
+  isActive              Boolean        @default(true)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  tier Tier @relation(fields: [tierId], references: [id])
+
+  @@index([tierId, isActive])
+  @@index([productCode, packageCode, kind, isActive])
+}
+
+// ---------------------------------------------------------------------------
+// Referrals and attribution
+// ---------------------------------------------------------------------------
+
+model Referral {
+  id                String            @id @default(cuid())
+  partnerId         String
+  attributionLockId String?
+  status            ReferralStatus    @default(PENDING_REVIEW)
+  attributionStatus AttributionStatus
+  leadName          String
+  leadEmail         String?
+  leadCompany       String?
+  leadDomain        String?
+  attributionKey    String
+  country           String?
+  originalPayload   Json
+  notes             String?
+  adminNotes        String?
+  submittedAt       DateTime          @default(now())
+  reviewedById      String?
+  reviewedAt        DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([partnerId, status, submittedAt])
+  @@index([status, submittedAt])
+  @@index([attributionKey])
+}
+
+model AttributionLock {
+  id              String    @id @default(cuid())
+  key             String    @unique
+  firstReferralId String?   @unique
+  partnerId       String
+  lockedAt        DateTime  @default(now())
+  voidedAt        DateTime?
+  voidReason      String?
+
+  @@index([partnerId, lockedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Deals, commissions, payouts
+// ---------------------------------------------------------------------------
+
+model Deal {
+  id            String     @id @default(cuid())
+  referralId    String     @unique
+  partnerId     String
+  productCode   String
+  packageCode   String?
+  status        DealStatus @default(OPEN)
+  amountCents   Int
+  currency      String     @default("USD")
+  externalCrmId String?
+  closedAt      DateTime?
+  lostReason    String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([partnerId, status, closedAt])
+  @@index([status, closedAt])
+}
+
+model CommissionEvent {
+  id                      String           @id @default(cuid())
+  partnerId               String
+  dealId                  String
+  ruleId                  String?
+  kind                    CommissionKind
+  status                  CommissionStatus @default(STAGED)
+  amountCents             Int
+  currency                String           @default("USD")
+  sourceRevenueCents      Int?
+  percentBpsSnapshot      Int?
+  flatAmountCentsSnapshot Int?
+  tierNameSnapshot        String
+  productCodeSnapshot     String
+  packageCodeSnapshot     String?
+  periodStart             DateTime?
+  periodEnd               DateTime?
+  payoutEligibleAt        DateTime
+  paidAt                  DateTime?
+  clawbackOfEventId       String?          @unique
+  reason                  String?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+
+  @@index([partnerId, status, payoutEligibleAt])
+  @@index([status, payoutEligibleAt])
+  @@index([dealId, kind, periodStart])
+}
+
+model PayoutBatch {
+  id          String       @id @default(cuid())
+  status      PayoutStatus @default(DRAFT)
+  periodStart DateTime?
+  periodEnd   DateTime?
+  currency    String       @default("USD")
+  notes       String?
+  createdById String
+  paidAt      DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model PayoutLine {
+  id                String   @id @default(cuid())
+  payoutBatchId     String
+  commissionEventId String   @unique
+  partnerId         String
+  amountCents       Int
+  currency          String   @default("USD")
+  createdAt         DateTime @default(now())
+
+  @@index([payoutBatchId])
+  @@index([partnerId])
+}
+
+// ---------------------------------------------------------------------------
+// Activity, notifications, email logs, audit logs
+// ---------------------------------------------------------------------------
+
+model QuarterlyActivitySnapshot {
+  id                 String   @id @default(cuid())
+  partnerId          String
+  quarter            String
+  referralsSubmitted Int      @default(0)
+  referralsApproved  Int      @default(0)
+  dealsWon           Int      @default(0)
+  revenueCents       Int      @default(0)
+  commissionCents    Int      @default(0)
+  overrideStatus     String?
+  overrideReason     String?
+  generatedAt        DateTime @default(now())
+
+  @@unique([partnerId, quarter])
+}
+
+model Notification {
+  id         String              @id @default(cuid())
+  userId     String?
+  channel    NotificationChannel
+  status     NotificationStatus  @default(QUEUED)
+  title      String
+  body       String
+  entityType String?
+  entityId   String?
+  readAt     DateTime?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@index([userId, readAt, createdAt])
+  @@index([status, createdAt])
+}
+
+model EmailLog {
+  id             String             @id @default(cuid())
+  notificationId String?
+  to             String
+  subject        String
+  status         NotificationStatus @default(QUEUED)
+  providerId     String?
+  error          String?
+  sentAt         DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  actorId    String?
+  actorType  ActorType @default(USER)
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  reason     String?
+  createdAt  DateTime  @default(now())
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+}

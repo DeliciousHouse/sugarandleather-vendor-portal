@@ -1,0 +1,50 @@
+:root {
+  /* Brand palette */
+  --sl-obsidian: #0E0C0F;
+  --sl-cream: #EDE8E1;
+  --sl-lavender: #C5B8D4;
+  --sl-charcoal: #2C2830;
+  --sl-deep-plum: #3D3347;
+  --sl-mid-gray: #6B6570;
+  --sl-warm-white: #F7F4F0;
+  --sl-silver: #A8A5AE;
+  --sl-mist: #D8D3DE;
+
+  /* Status palette. These are semantic UI tokens, not brand accents. */
+  --status-success-bg: rgba(34, 197, 94, 0.15);
+  --status-success-text: #86EFAC;
+  --status-success-border: rgba(34, 197, 94, 0.25);
+  --status-warning-bg: rgba(245, 158, 11, 0.15);
+  --status-warning-text: #FCD34D;
+  --status-warning-border: rgba(245, 158, 11, 0.25);
+  --status-danger-bg: rgba(239, 68, 68, 0.15);
+  --status-danger-text: #FCA5A5;
+  --status-danger-border: rgba(239, 68, 68, 0.25);
+  --status-danger-strong-bg: #7F1D1D;
+
+  /* Brand alpha tokens */
+  --accent-bg-subtle: rgba(197, 184, 212, 0.2);
+  --accent-border-subtle: rgba(197, 184, 212, 0.35);
+  --silver-bg-subtle: rgba(168, 165, 174, 0.15);
+  --silver-border-subtle: rgba(168, 165, 174, 0.25);
+
+  /* Semantic surfaces */
+  --surface-root: var(--sl-obsidian);
+  --surface-panel: var(--sl-charcoal);
+  --surface-panel-hover: var(--sl-deep-plum);
+  --surface-cream: var(--sl-cream);
+  --surface-warm: var(--sl-warm-white);
+
+  /* Text */
+  --text-primary-dark: var(--sl-cream);
+  --text-secondary-dark: var(--sl-silver);
+  --text-primary-light: var(--sl-obsidian);
+  --text-secondary-light: var(--sl-mid-gray);
+
+  /* Accent */
+  --accent: var(--sl-lavender);
+
+  /* Borders */
+  --border-dark: rgba(237, 232, 225, 0.12);
+  --border-light: var(--sl-mist);
+}
