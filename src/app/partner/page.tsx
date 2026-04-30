@@ -1,14 +1,19 @@
 import React from "react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getRequiredActivePartner } from "@/lib/auth";
 import { getPartnerReferralStatusCountsForPartner } from "@/domain/dashboard/queries";
-import MetricCard from "@/components/dashboard/MetricCard";
+import EditorialShell, {
+  AccentSection,
+  EmptyQueueRow,
+  QueueRow,
+  pluralize,
+  spellOrNumber,
+} from "@/components/brand/EditorialShell";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Dashboard — Partner — Sugar & Leather",
+  title: "Dashboard · Partner · Sugar & Leather",
 };
 
 export default async function PartnerDashboardPage() {
@@ -25,152 +30,136 @@ export default async function PartnerDashboardPage() {
 
   const counts = await getPartnerReferralStatusCountsForPartner(actor.partnerId);
 
+  const total = counts.total;
+  const converted = counts.CONVERTED;
+  const pending = counts.PENDING_REVIEW;
+  const approved = counts.APPROVED;
+
+  const headlineParts: React.ReactNode[] = [];
+  if (total > 0) {
+    headlineParts.push(
+      `${spellOrNumber(total, { capitalize: true })} ${pluralize(total, "referral")}`,
+    );
+  }
+  if (converted > 0) {
+    headlineParts.push(
+      `${spellOrNumber(converted, {
+        capitalize: headlineParts.length === 0,
+      })} ${pluralize(converted, "deal")} closed`,
+    );
+  }
+  if (pending > 0) {
+    headlineParts.push(
+      <>
+        {spellOrNumber(pending, { capitalize: headlineParts.length === 0 })} still in{" "}
+        <span className="relative inline-block">
+          motion
+          <span
+            aria-hidden
+            className="absolute -bottom-2 left-0 h-[3px] w-full bg-[var(--sl-lavender)]"
+          />
+        </span>
+      </>,
+    );
+  }
+
+  const headlineNode: React.ReactNode =
+    headlineParts.length === 0 ? (
+      <>
+        Welcome. Submit your first{" "}
+        <span className="relative inline-block">
+          referral
+          <span
+            aria-hidden
+            className="absolute -bottom-2 left-0 h-[3px] w-full bg-[var(--sl-lavender)]"
+          />
+        </span>
+      </>
+    ) : headlineParts.length === 1 ? (
+      <>{headlineParts[0]}</>
+    ) : (
+      <>
+        {headlineParts.slice(0, -1).map((p, i) => (
+          <span key={i}>
+            {p}
+            {i < headlineParts.length - 2 ? ", " : ", and "}
+          </span>
+        ))}
+        {headlineParts[headlineParts.length - 1]}
+      </>
+    );
+
+  const bodyLines: string[] = [];
+  if (approved > 0)
+    bodyLines.push(
+      `${approved} ${pluralize(approved, "referral")} approved, ready for the deal stage.`,
+    );
+  if (counts.LOST > 0 || counts.REJECTED > 0) {
+    const lost = counts.LOST + counts.REJECTED;
+    bodyLines.push(
+      `${lost} closed without conversion this period.`,
+    );
+  }
+  if (bodyLines.length === 0)
+    bodyLines.push(
+      "Submit a referral and we'll handle the rest. No automated funnel, no follow-up scripts.",
+    );
+
+  const partnerLabel = "Authorized partner";
+
   return (
-    <main
-      className="min-h-screen py-10 px-6"
-      style={{ backgroundColor: "var(--surface-root)" }}
-    >
-      <div className="max-w-5xl mx-auto" style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
-        {/* Header */}
-        <div>
-          <h1
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "2rem",
-              fontWeight: 700,
-              color: "var(--sl-cream)",
-              marginBottom: "0.25rem",
-            }}
+    <EditorialShell
+      topLeftLabel="Sugar & Leather AI"
+      topRightLabel="01 / Partner"
+      eyebrow="Your activity"
+      headline={headlineNode}
+      body={<p>{bodyLines.join(" ")}</p>}
+      footerRight={partnerLabel.toUpperCase()}
+      rightLabel="02 / At a glance"
+      rightHeadline="This period"
+      rightChildren={
+        <>
+          <AccentSection
+            eyebrow={`In review · ${pending}`}
+            eyebrowAccent={pending > 0}
           >
-            Dashboard
-          </h1>
-          <p style={{ fontSize: "0.9375rem", color: "var(--sl-silver)" }}>
-            Your referral activity at a glance.
-          </p>
-        </div>
+            {pending === 0 ? (
+              <EmptyQueueRow note="Nothing waiting on us." />
+            ) : (
+              <QueueRow
+                category="Pending review"
+                title={`${pending} ${pluralize(pending, "referral")}`}
+                meta="Typical review window: 2–3 business days"
+              />
+            )}
+          </AccentSection>
 
-        {/* Referral counts */}
-        <section style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <h2
-            style={{
-              fontSize: "1rem",
-              fontWeight: 600,
-              color: "var(--sl-cream)",
-              letterSpacing: "0.01em",
-            }}
-          >
-            Referrals
-          </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            <MetricCard label="Total" value={counts.total} variant="neutral" />
-            <MetricCard label="Pending review" value={counts.PENDING_REVIEW} variant="warning" />
-            <MetricCard label="Approved" value={counts.APPROVED} variant="success" />
-            <MetricCard label="Converted" value={counts.CONVERTED} variant="success" />
-            <MetricCard label="Rejected" value={counts.REJECTED} variant="danger" />
-            <MetricCard label="Lost" value={counts.LOST} variant="neutral" />
-          </div>
-          <div>
-            <Link
-              href="/partner/referrals"
-              style={{
-                fontSize: "0.875rem",
-                color: "var(--sl-lavender)",
-                fontWeight: 500,
-              }}
-            >
-              View all referrals →
-            </Link>
-          </div>
-        </section>
+          <AccentSection eyebrow={`Approved · ${approved}`}>
+            {approved === 0 ? (
+              <EmptyQueueRow note="None at the moment." />
+            ) : (
+              <QueueRow
+                category="Ready for outreach"
+                title={`${approved} ${pluralize(approved, "referral")}`}
+                meta="Move to deal stage when contact is warm"
+              />
+            )}
+          </AccentSection>
 
-        {/* Quick navigation */}
-        <section style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <h2
-            style={{
-              fontSize: "1rem",
-              fontWeight: 600,
-              color: "var(--sl-cream)",
-              letterSpacing: "0.01em",
-            }}
-          >
-            Overview
-          </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            <Link
-              href="/partner/deals"
-              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sl-lavender)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sl-obsidian)] rounded-xl"
-              style={{ textDecoration: "none" }}
-            >
-              <div
-                style={{
-                  backgroundColor: "var(--surface-panel)",
-                  border: "1px solid var(--border-dark)",
-                  borderRadius: "0.75rem",
-                  padding: "1.25rem 1.5rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.375rem",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "1.125rem",
-                    fontWeight: 600,
-                    color: "var(--sl-cream)",
-                  }}
-                >
-                  My deals
-                </span>
-                <span style={{ fontSize: "0.875rem", color: "var(--sl-silver)" }}>
-                  Track deal statuses and closed revenue.
-                </span>
-              </div>
-            </Link>
-            <Link
-              href="/partner/earnings"
-              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sl-lavender)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sl-obsidian)] rounded-xl"
-              style={{ textDecoration: "none" }}
-            >
-              <div
-                style={{
-                  backgroundColor: "var(--surface-panel)",
-                  border: "1px solid var(--border-dark)",
-                  borderRadius: "0.75rem",
-                  padding: "1.25rem 1.5rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.375rem",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "1.125rem",
-                    fontWeight: 600,
-                    color: "var(--sl-cream)",
-                  }}
-                >
-                  My earnings
-                </span>
-                <span style={{ fontSize: "0.875rem", color: "var(--sl-silver)" }}>
-                  View staged, payable, and paid commissions.
-                </span>
-              </div>
-            </Link>
-          </div>
-        </section>
-      </div>
-    </main>
+          <AccentSection eyebrow={`Closed · ${converted}`}>
+            {converted === 0 ? (
+              <EmptyQueueRow note="No deals closed yet this period." />
+            ) : (
+              <QueueRow
+                category="Converted"
+                title={`${converted} ${pluralize(converted, "deal")} closed`}
+                meta="Commission stages on the next payout cycle"
+              />
+            )}
+          </AccentSection>
+        </>
+      }
+      rightFooter={{ href: "/partner/referrals", label: "Open all referrals" }}
+    />
   );
 }
