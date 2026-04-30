@@ -5,6 +5,8 @@
 #
 # Format: one path per line, relative to repo root. Comments allowed.
 
+# (Phase D — admin lists — all cleared)
+
 # TierRuleEditor uses inline hex for status indicators. This is a complex
 # stateful editor — tracked for focused cleanup, out of scope for the visual
 # port. The check-tokens.sh gate filters by file path, so allowlisting just

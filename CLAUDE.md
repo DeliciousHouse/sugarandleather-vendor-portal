@@ -73,6 +73,29 @@ Top-level app routes split by audience: `src/app/admin`, `src/app/partner`, plus
 
 **Always read `DESIGN.md` before any visual or UI change.** It is the source of truth for typography, color, layout, composition primitives, and the anti-slop checklist. Tokens live in `src/styles/tokens.css`. Do not hardcode hex or font-family names in components. Lavender (`#C5B8D4`) is accent only — max 20% of composition, never a button background, never a status color.
 
+**Token discipline gate:** `bash scripts/check-tokens.sh` (also runs first under `npm run verify`). Flags hex codes, `font-family:` strings, and per-file lavender count above the cap (6 generally, 8 for `EditorialShell`). Pre-redesign files are tracked in `scripts/.tokencheck-allowlist` — clear an entry when you port that file.
+
+**Editorial Obsidian primitives** live in `src/components/brand/`. Reach for these in this order:
+
+| Primitive | When |
+|-----------|------|
+| `EditorialShell` | Marketing-style landing surfaces (`/`, `/login`, `/admin`, `/partner`) — magazine layout, hero-first |
+| `EditorialPageShell` | Authenticated working surfaces (lists + details). Configurable 8/4 or 6/6 split, top bar with breadcrumb + actions slot |
+| `EditorialTable` | Data lists. Hairline rows, mono headers, URL-driven sort. No zebra stripes, no rounded wrapper |
+| `EditorialField` | Form inputs. Layout wrapper around any `<input>`/`<select>`/`<textarea>`. Not coupled to react-hook-form |
+| `EditorialStatusPill` | Status text. Semantic `--status-*` color tokens. **Lavender NEVER on status text** |
+| `EditorialBreadcrumb` | Page header navigation. Hard-capped at 2 levels. Entity IDs go in a separate `subheadline` slot |
+| `EditorialEmptyState` | Empty-queue body block. Cormorant 32px + mono caption + lavender-underline action |
+| `EditorialFilterBar` | Mono caps filter pills with hairline accent under the active option |
+| `EditorialPagination` | URL-driven pagination with animated underline-link prev/next |
+
+**Canonical references for porting new screens** (see DESIGN.md for the full list):
+- List: `src/app/admin/applications/page.tsx`
+- Form: `src/app/apply/page.tsx` + `src/components/applications/ApplicationForm.tsx`
+- Detail (8/4): `src/app/admin/applications/[id]/page.tsx`
+- Detail (6/6): `src/app/admin/tiers/[id]/page.tsx`
+- Hero: `src/app/page.tsx`
+
 ## Testing
 
 - `tests/domain/*.test.ts` — pure TS, mocks/fakes, no DB.
