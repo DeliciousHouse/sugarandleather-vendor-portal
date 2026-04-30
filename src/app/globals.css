@@ -12,3 +12,18 @@ body {
   color: var(--text-primary-dark);
   font-family: var(--font-body), Inter, Helvetica Neue, Helvetica, Arial, sans-serif;
 }
+
+/* Brand focus ring — applies to all interactive elements not managed by Tailwind ring utilities */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--sl-lavender);
+  outline-offset: 2px;
+}
+
+/* Link focus ring — for anchor elements that wrap card/tile surfaces */
+a:focus-visible {
+  outline: 2px solid var(--sl-lavender);
+  outline-offset: 3px;
+  border-radius: 0.75rem;
+}
