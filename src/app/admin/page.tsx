@@ -167,8 +167,8 @@ export default async function AdminDashboardPage() {
             ) : (
               <QueueRow
                 category="Payouts"
-                title={`${dollars(snapshot.totalCommissionCents, snapshot.currency)} in commission`}
-                meta={`${payouts} ${pluralize(payouts, "event")} payable`}
+                title={`${dollars(counts.payableAmountCents, snapshot.currency)} payable`}
+                meta={`${payouts} ${pluralize(payouts, "event")} ready to release`}
               />
             )}
           </AccentSection>
