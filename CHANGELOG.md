@@ -4,6 +4,14 @@ All notable changes to the Sugar & Leather Vendor Portal are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project uses [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-04-30
+
+### Fixed
+- Brand mark in the page header was rendering as a flat cream square. The original logo asset had a cream background and a dark mark — the alpha-mask generation script recolored every non-transparent pixel cream, so the entire bounding box came out solid. Regenerated with luminance thresholding (mark vs background), trimmed to bounding box, and padded square so Next.js Image's `width === height` matches the source aspect. Affects every `EditorialPageShell` page header.
+- `EditorialPageShell` left an empty 4-column gutter on the right side of every page that didn't pass `sideChildren` (forms, list pages without a filter rail). The grid was always `lg:grid-cols-12` with the main column pinned at `col-span-8`, leaving 33% of the viewport unused. Now collapses to a flat full-width container when no side panel is provided.
+
+Both regressions found by `/qa` against the local dev server and verified fixed against the running app.
+
 ## [0.3.0] - 2026-04-30
 
 ### Added
