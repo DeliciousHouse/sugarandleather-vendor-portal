@@ -48,7 +48,7 @@ export default function Button({
   ...rest
 }: ButtonProps) {
   const baseClasses =
-    "inline-flex items-center justify-center font-medium transition-opacity cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+    "inline-flex items-center justify-center font-medium transition-opacity cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sl-lavender)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sl-obsidian)]";
 
   return (
     <button

@@ -108,7 +108,11 @@ export default async function PartnerDashboardPage() {
               gap: "1rem",
             }}
           >
-            <Link href="/partner/deals" style={{ textDecoration: "none" }}>
+            <Link
+              href="/partner/deals"
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sl-lavender)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sl-obsidian)] rounded-xl"
+              style={{ textDecoration: "none" }}
+            >
               <div
                 style={{
                   backgroundColor: "var(--surface-panel)",
@@ -134,7 +138,11 @@ export default async function PartnerDashboardPage() {
                 </span>
               </div>
             </Link>
-            <Link href="/partner/earnings" style={{ textDecoration: "none" }}>
+            <Link
+              href="/partner/earnings"
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sl-lavender)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sl-obsidian)] rounded-xl"
+              style={{ textDecoration: "none" }}
+            >
               <div
                 style={{
                   backgroundColor: "var(--surface-panel)",

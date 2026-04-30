@@ -94,7 +94,7 @@ export default async function AdminApplicationsPage({
       style={{ backgroundColor: "var(--surface-root)" }}
     >
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-8">
           <h1
             className="text-3xl font-bold"
             style={{

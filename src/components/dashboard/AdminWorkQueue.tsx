@@ -58,6 +58,7 @@ export default function AdminWorkQueue({ counts }: AdminWorkQueueProps) {
         <Link
           key={item.label}
           href={item.href}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sl-lavender)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sl-obsidian)] rounded-xl"
           style={{ textDecoration: "none", display: "block" }}
         >
           <div
