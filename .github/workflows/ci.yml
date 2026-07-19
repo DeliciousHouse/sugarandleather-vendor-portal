@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -38,20 +40,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # These whole-tree gates are intentionally unconditional. They are stricter
-      # than a forward-only lint gate: every changed TypeScript, TSX, CSS, and token
-      # source is checked without a change detector that could fail open.
+      # These whole-tree gates are intentionally unconditional and use the
+      # repository's canonical verification contract without a change detector.
       - name: Validate Prisma schema
         run: npm run prisma:validate
 
-      - name: Check design tokens
-        run: npm run check:tokens
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Test
-        run: npm run test
-
-      - name: Build
-        run: npx next build --webpack
+      - name: Verify
+        run: npm run verify
