@@ -4,6 +4,13 @@ All notable changes to the Sugar & Leather Vendor Portal are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project uses [Semantic Versioning](https://semver.org/).
 
+## [0.3.2] - 2026-07-19
+
+### Added
+- Pull requests to `main` and pushes to `main` now run a bounded, cancellation-aware GitHub Actions quality gate with deterministic Node/npm setup.
+- CI validates the Prisma schema, design-token discipline, lint, the full Vitest suite, and the production webpack build using non-secret build placeholders.
+- A workflow contract test prevents source and token changes from silently bypassing the required checks.
+
 ## [0.3.1] - 2026-04-30
 
 ### Fixed
