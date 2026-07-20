@@ -8,7 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ### Added
 - Pull requests to `main` and pushes to `main` now run a bounded, cancellation-aware GitHub Actions quality gate with deterministic Node/npm setup.
-- CI validates the Prisma schema, design-token discipline, lint, the full Vitest suite, and the production webpack build using non-secret build placeholders.
+- CI validates the Prisma schema separately, then runs the canonical `npm run verify` whole-tree contract for design tokens, lint, the full Vitest suite, and the production build using non-secret build placeholders.
 - A workflow contract test prevents source and token changes from silently bypassing the required checks.
 
 ## [0.3.1] - 2026-04-30

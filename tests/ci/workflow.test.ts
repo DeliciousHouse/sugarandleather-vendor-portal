@@ -2,9 +2,71 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { parse } from "yaml";
 
 const workflowPath = resolve(process.cwd(), ".github/workflows/ci.yml");
 const workflow = readFileSync(workflowPath, "utf8");
+
+type WorkflowMapping = Record<string, unknown>;
+
+function requireMapping(value: unknown, label: string): WorkflowMapping {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new TypeError(`${label} must be a mapping`);
+  }
+
+  return value as WorkflowMapping;
+}
+
+function requireSteps(value: unknown, label: string): WorkflowMapping[] {
+  if (!Array.isArray(value)) {
+    throw new TypeError(`${label} must be a sequence`);
+  }
+
+  return value.map((step, index) =>
+    requireMapping(step, `${label}[${index}]`),
+  );
+}
+
+function assertCanonicalQualityContract(candidate: string) {
+  const document = requireMapping(parse(candidate), "workflow");
+  const jobs = requireMapping(document.jobs, "jobs");
+
+  for (const [jobName, value] of Object.entries(jobs)) {
+    const job = requireMapping(value, `jobs.${jobName}`);
+    expect(job).not.toHaveProperty("if");
+
+    if (job.steps === undefined) {
+      continue;
+    }
+
+    const steps = requireSteps(job.steps, `jobs.${jobName}.steps`);
+    for (const step of steps) {
+      expect(step).not.toHaveProperty("if");
+      expect(step).not.toHaveProperty("continue-on-error");
+    }
+  }
+
+  const quality = requireMapping(jobs.quality, "jobs.quality");
+  const qualitySteps = requireSteps(quality.steps, "jobs.quality.steps");
+  const runCommands = qualitySteps.flatMap((step) =>
+    typeof step.run === "string" ? [step.run] : [],
+  );
+
+  expect(quality["timeout-minutes"]).toBe(30);
+  expect(runCommands).toEqual([
+    "npm ci",
+    "npm run prisma:validate",
+    "npm run verify",
+  ]);
+
+  const environment = requireMapping(quality.env, "jobs.quality.env");
+  expect(environment.DATABASE_URL).toBe(
+    "postgresql://ci:ci@127.0.0.1:5432/vendor_portal_ci",
+  );
+  expect(environment.AUTH_SECRET).toBe(
+    "ci-only-placeholder-auth-secret-change-before-production",
+  );
+}
 
 describe("CI workflow", () => {
   it("runs for every pull request and push to main", () => {
@@ -36,29 +98,32 @@ describe("CI workflow", () => {
   });
 
   it("runs the unskippable canonical quality contract", () => {
-    expect(workflow).toContain("timeout-minutes: 30");
-    const requiredCommands = [
-      "run: npm run prisma:validate",
-      "run: npm run verify",
-    ];
-    let previousIndex = -1;
-    for (const command of requiredCommands) {
-      const commandIndex = workflow.indexOf(command);
-      expect(commandIndex).toBeGreaterThan(previousIndex);
-      previousIndex = commandIndex;
-    }
+    expect(() => assertCanonicalQualityContract(workflow)).not.toThrow();
+  });
 
-    expect(workflow).not.toContain("run: npm run check:tokens");
-    expect(workflow).not.toContain("run: npm run lint");
-    expect(workflow).not.toContain("run: npm run test");
-    expect(workflow).not.toMatch(/run: (?:npm run|npx next) build/);
-    expect(workflow).not.toContain("continue-on-error:");
-    expect(workflow).not.toMatch(/^\s+if:/m);
-    expect(workflow).toMatch(
-      /DATABASE_URL: postgresql:\/\/ci:ci@127\.0\.0\.1:5432\/vendor_portal_ci/,
-    );
-    expect(workflow).toContain(
-      "AUTH_SECRET: ci-only-placeholder-auth-secret-change-before-production",
-    );
+  it.each([
+    [
+      "a command that discards verify failures",
+      workflow.replace(
+        "run: npm run verify",
+        "run: npm run verify || true",
+      ),
+    ],
+    [
+      "a command that only echoes a commented verify string",
+      workflow.replace(
+        "run: npm run verify",
+        "run: echo skipped # run: npm run verify",
+      ),
+    ],
+    [
+      "a Verify step skipped by a leading if key",
+      workflow.replace(
+        "- name: Verify\n        run: npm run verify",
+        "- if: ${{ false }}\n        name: Verify\n        run: npm run verify",
+      ),
+    ],
+  ])("rejects %s", (_description, mutatedWorkflow) => {
+    expect(() => assertCanonicalQualityContract(mutatedWorkflow)).toThrow();
   });
 });
