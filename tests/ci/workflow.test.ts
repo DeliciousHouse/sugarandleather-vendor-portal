@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
 const workflowPath = resolve(process.cwd(), ".github/workflows/ci.yml");
-const workflow = readFileSync(workflowPath, "utf8");
+const workflow = readFileSync(workflowPath, "utf8").replaceAll("\r\n", "\n");
 
 type WorkflowMapping = Record<string, unknown>;
 
@@ -34,6 +34,7 @@ function assertCanonicalQualityContract(candidate: string) {
   for (const [jobName, value] of Object.entries(jobs)) {
     const job = requireMapping(value, `jobs.${jobName}`);
     expect(job).not.toHaveProperty("if");
+    expect(job).not.toHaveProperty("continue-on-error");
 
     if (job.steps === undefined) {
       continue;
@@ -121,6 +122,13 @@ describe("CI workflow", () => {
       workflow.replace(
         "- name: Verify\n        run: npm run verify",
         "- if: ${{ false }}\n        name: Verify\n        run: npm run verify",
+      ),
+    ],
+    [
+      "a quality job allowed to fail",
+      workflow.replace(
+        "quality:\n    name: Quality gate",
+        "quality:\n    continue-on-error: true\n    name: Quality gate",
       ),
     ],
   ])("rejects %s", (_description, mutatedWorkflow) => {
