@@ -24,9 +24,9 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@types/pg": "^8.20.0",
-    "next": "16.2.4",
+    "next": "16.3.0",
     "pg": "^8.20.0",
-    "prisma": "^7.8.0",
+    "prisma": "^7.9.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "zod": "^4.3.6"
@@ -46,7 +46,7 @@
     "eslint-config-next": "16.2.4",
     "jsdom": "^29.1.0",
     "tailwindcss": "^4.2.4",
-    "tsx": "^4.19.4",
+    "tsx": "^4.23.9",
     "typescript": "^5",
     "vitest": "^4.1.5",
     "yaml": "^2.9.0"
