@@ -49,7 +49,9 @@ function makeEvent(overrides?: Partial<CommissionEventRow>): CommissionEventRow 
   };
 }
 
-function makeBatch(overrides?: Partial<PayoutBatchRow>): PayoutBatchRow {
+type PayoutBatchWithLines = PayoutBatchRow & { lines?: PayoutLineRow[] };
+
+function makeBatch(overrides?: Partial<PayoutBatchWithLines>): PayoutBatchWithLines {
   return {
     id: "batch_1",
     status: "DRAFT",
@@ -112,37 +114,44 @@ function makeDb(opts: FakeDb = {}): PayoutDb {
         updatedEvents[where.id] = { ...base, ...data };
         return { ...base, ...data } as CommissionEventRow;
       }),
-      create: vi.fn(async ({ data }: { data: object }) => ({
-        id: `event_clawback_${Math.random().toString(36).slice(2)}`,
-        createdAt: now,
-        updatedAt: now,
-        ...data,
-      })) as PayoutDb["commissionEvent"]["create"],
+      create: vi.fn(async ({ data }: { data: object }) =>
+        makeEvent({
+          ...(data as Partial<CommissionEventRow>),
+          id: `event_clawback_${Math.random().toString(36).slice(2)}`,
+          createdAt: now,
+          updatedAt: now,
+        })
+      ),
       updateMany: vi.fn(async () => ({ count: opts.updateManyCount ?? 0 })),
     },
     payoutBatch: {
-      create: vi.fn(async ({ data }: { data: object }) => ({
-        ...makeBatch(),
-        ...data,
-        id: "batch_new",
-        createdAt: now,
-        updatedAt: now,
-      })) as PayoutDb["payoutBatch"]["create"],
+      create: vi.fn(async ({ data }: { data: object }) =>
+        makeBatch({
+          ...(data as Partial<PayoutBatchRow>),
+          id: "batch_new",
+          createdAt: now,
+          updatedAt: now,
+        })
+      ),
       findUnique: vi.fn(async () =>
         opts.batch !== undefined ? opts.batch : null
       ),
-      update: vi.fn(async ({ data }: { data: object }) => ({
-        ...(opts.batch ?? makeBatch()),
-        ...data,
-        updatedAt: now,
-      })) as PayoutDb["payoutBatch"]["update"],
+      update: vi.fn(async ({ data }: { data: object }) =>
+        makeBatch({
+          ...(opts.batch ?? makeBatch()),
+          ...(data as Partial<PayoutBatchRow>),
+          updatedAt: now,
+        })
+      ),
     },
     payoutLine: {
-      create: vi.fn(async ({ data }: { data: object }) => ({
-        id: `line_${Math.random().toString(36).slice(2)}`,
-        createdAt: now,
-        ...data,
-      })) as PayoutDb["payoutLine"]["create"],
+      create: vi.fn(async ({ data }: { data: object }) =>
+        makeLine({
+          ...(data as Partial<PayoutLineRow>),
+          id: `line_${Math.random().toString(36).slice(2)}`,
+          createdAt: now,
+        })
+      ),
       findUnique: vi.fn(async (args: { where: { commissionEventId?: string } }) => {
         if (opts.lineByEventId && args.where.commissionEventId) {
           return opts.lineByEventId[args.where.commissionEventId] ?? null;

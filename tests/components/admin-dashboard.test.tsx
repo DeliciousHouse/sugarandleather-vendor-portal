@@ -15,6 +15,7 @@ const makeQueueCounts = (overrides?: Partial<AdminWorkQueueCounts>): AdminWorkQu
   agreementsPending: 1,
   referralsPending: 7,
   commissionsPayable: 2,
+  payableAmountCents: 20000,
   ...overrides,
 });
 
@@ -49,7 +50,17 @@ describe("AdminWorkQueue", () => {
   });
 
   it("renders all counts correctly when all are non-zero", () => {
-    render(<AdminWorkQueue counts={{ applicationsPending: 3, agreementsPending: 1, referralsPending: 7, commissionsPayable: 2 }} />);
+    render(
+      <AdminWorkQueue
+        counts={{
+          applicationsPending: 3,
+          agreementsPending: 1,
+          referralsPending: 7,
+          commissionsPayable: 2,
+          payableAmountCents: 20000,
+        }}
+      />
+    );
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("7")).toBeInTheDocument();
@@ -59,7 +70,13 @@ describe("AdminWorkQueue", () => {
   it("renders empty states for all zeroed counts", () => {
     render(
       <AdminWorkQueue
-        counts={{ applicationsPending: 0, agreementsPending: 0, referralsPending: 0, commissionsPayable: 0 }}
+        counts={{
+          applicationsPending: 0,
+          agreementsPending: 0,
+          referralsPending: 0,
+          commissionsPayable: 0,
+          payableAmountCents: 0,
+        }}
       />
     );
     expect(screen.getByText(/no applications pending/i)).toBeInTheDocument();

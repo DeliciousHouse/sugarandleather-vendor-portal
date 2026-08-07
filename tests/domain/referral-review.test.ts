@@ -84,14 +84,21 @@ describe("reviewReferral — APPROVE", () => {
 
   it("stores adminNotes on the referral record", async () => {
     const deps = makeDeps(makeReferral());
-    const result = await reviewReferral({
-      referralId: "ref_1",
-      action: "APPROVE",
-      adminNotes: "Looks good",
-      reviewedById: "admin_1",
-    }, deps);
+    await reviewReferral(
+      {
+        referralId: "ref_1",
+        action: "APPROVE",
+        adminNotes: "Looks good",
+        reviewedById: "admin_1",
+      },
+      deps
+    );
 
-    expect(result.adminNotes).toBe("Looks good");
+    expect(deps.db.referral.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ adminNotes: "Looks good" }),
+      })
+    );
   });
 
   it("blocks approval if attributionStatus is DUPLICATE_NO_CREDIT", async () => {

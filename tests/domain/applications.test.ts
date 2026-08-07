@@ -26,7 +26,7 @@ const validInput: ApplicationInput = {
 function makeFakeDb(overrides?: {
   findFirst?: ReturnType<typeof vi.fn>;
   create?: ReturnType<typeof vi.fn>;
-}) {
+}): Parameters<typeof submitApplication>[1] {
   return {
     partnerApplication: {
       findFirst:
@@ -48,7 +48,7 @@ function makeFakeDb(overrides?: {
     auditLog: {
       create: vi.fn().mockResolvedValue({}),
     },
-  };
+  } as unknown as Parameters<typeof submitApplication>[1];
 }
 
 // ---------------------------------------------------------------------------

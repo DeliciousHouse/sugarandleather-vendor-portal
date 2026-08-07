@@ -60,14 +60,16 @@ function makeDb(opts: {
   return {
     tier: {
       findUnique: vi.fn(async () => (opts.tier !== undefined ? opts.tier : null)),
-      create: vi.fn(async ({ data }: { data: object }) => ({
-        id: "tier_new",
-        isDefault: false,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        ...data,
-      })) as TierDb["tier"]["create"],
+      create: vi.fn(async ({ data }: { data: object }) =>
+        makeTier({
+          ...(data as Partial<TierRow>),
+          id: "tier_new",
+          isDefault: false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      ),
       update: vi.fn(async ({ data }: { data: object }) => ({
         ...(opts.tier ?? makeTier()),
         ...data,
@@ -76,13 +78,15 @@ function makeDb(opts: {
     },
     commissionRule: {
       findUnique: vi.fn(async () => (opts.rule !== undefined ? opts.rule : null)),
-      create: vi.fn(async ({ data }: { data: object }) => ({
-        id: "rule_new",
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        ...data,
-      })) as TierDb["commissionRule"]["create"],
+      create: vi.fn(async ({ data }: { data: object }) =>
+        makeRule({
+          ...(data as Partial<CommissionRuleRow>),
+          id: "rule_new",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      ),
       update: vi.fn(async ({ data }: { data: object }) => ({
         ...(opts.rule ?? makeRule()),
         ...data,
