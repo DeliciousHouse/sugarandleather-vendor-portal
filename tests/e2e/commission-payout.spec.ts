@@ -202,7 +202,7 @@ test("won deal → commission staged → payable → paid → clawback", async (
   expect(clawback.clawbackOfEventId).toBeTruthy();
 
   // The original paid event is now marked CLAWED_BACK
-  const originalEvent = await findCommissionEvent(clawback.clawbackOfEventId);
+  const originalEvent = await findCommissionEvent(clawback.clawbackOfEventId!);
   expect(originalEvent).not.toBeNull();
   expect(originalEvent!.status).toBe("CLAWED_BACK");
 });

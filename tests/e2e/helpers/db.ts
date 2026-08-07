@@ -271,11 +271,21 @@ export async function findAttributionLock(leadEmail: string) {
   return rows[0] ?? null;
 }
 
-export async function findCommissionEvents(dealId: string) {
+type CommissionEventSummary = {
+  id: string;
+  kind: string;
+  status: string;
+  amountCents: number;
+  clawbackOfEventId: string | null;
+};
+
+export async function findCommissionEvents(
+  dealId: string
+): Promise<CommissionEventSummary[]> {
   return query(
     `SELECT id, kind, status, "amountCents", "clawbackOfEventId" FROM "CommissionEvent" WHERE "dealId" = $1`,
     [dealId]
-  );
+  ) as Promise<CommissionEventSummary[]>;
 }
 
 export async function createClawbackForCommissionEvent(eventId: string, reason: string) {
@@ -325,11 +335,13 @@ export async function findPayoutBatch(batchId: string) {
   return rows[0] ?? null;
 }
 
-export async function findCommissionEvent(id: string) {
+export async function findCommissionEvent(
+  id: string
+): Promise<CommissionEventSummary | null> {
   const rows = await query(
     `SELECT id, kind, status, "amountCents", "clawbackOfEventId" FROM "CommissionEvent" WHERE id = $1`,
     [id]
-  );
+  ) as CommissionEventSummary[];
   return rows[0] ?? null;
 }
 

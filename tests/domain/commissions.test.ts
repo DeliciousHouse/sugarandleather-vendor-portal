@@ -8,6 +8,7 @@ import {
   stageCommissions,
   type StageCommissionsInput,
   type CommissionDb,
+  type CommissionEventRow,
 } from "@/domain/commissions/service";
 
 // ---------------------------------------------------------------------------
@@ -395,9 +396,7 @@ describe("stageCommissions — idempotency", () => {
     const db = makeCommissionDb();
     // First call returns existing, subsequent calls return null
     vi.mocked(db.commissionEvent.findFirst).mockResolvedValueOnce(
-      existing as unknown as Parameters<
-        Parameters<(typeof db.commissionEvent.findFirst)>[0] extends infer A ? () => A : never
-      >[0]
+      existing as unknown as CommissionEventRow
     );
 
     const events = await stageCommissions(
