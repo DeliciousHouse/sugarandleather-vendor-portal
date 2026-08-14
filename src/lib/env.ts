@@ -12,6 +12,9 @@ const envSchema = z.object({
   SEED_ADMIN_NAME: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
+  JIRA_BASE_URL: z.string().url().optional(),
+  JIRA_EMAIL: z.string().email().optional(),
+  JIRA_API_TOKEN: z.string().optional(),
   AGREEMENT_PACKET_URL: z.string().url().optional(),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
