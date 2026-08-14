@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter, Courier_Prime } from "next/font/google";
+import FeedbackButton from "@/components/feedback/FeedbackButton";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -36,6 +37,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[var(--sl-obsidian)] text-[var(--sl-cream)]">
         {children}
+        <FeedbackButton />
       </body>
     </html>
   );

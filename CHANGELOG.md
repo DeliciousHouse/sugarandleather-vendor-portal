@@ -4,6 +4,13 @@ All notable changes to the Sugar & Leather Vendor Portal are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project uses [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-08-13
+
+### Added
+- A globally mounted, keyboard-accessible feedback dialog is available across Vendor Portal routes with mobile-safe placement and retry-safe submission.
+- Feedback posts through a same-origin server endpoint to Jira project `GEN`; Jira credentials remain server-only and the browser payload is restricted to explicit report fields plus the current pathname.
+- Strict request validation, Jira timeouts, scrubbed errors, fixed product labeling, and submission-label retry deduplication protect the direct-Jira path.
+
 ## [0.3.2] - 2026-07-19
 
 ### Added

@@ -37,6 +37,9 @@ Optional but needed for full functionality:
 |---|---|
 | `RESEND_API_KEY` | Resend API key for transactional email |
 | `EMAIL_FROM` | Sender address for outgoing email |
+| `JIRA_BASE_URL` | Jira Cloud base URL for global feedback |
+| `JIRA_EMAIL` | Server-only Jira service-account email |
+| `JIRA_API_TOKEN` | Server-only Jira API token; reports are hard-pinned to project `GEN` |
 | `AGREEMENT_PACKET_URL` | URL for the NDA + agreement packet sent to applicants |
 
 Do not commit `.env`. The `.env.example` is the canonical list of variables.
@@ -90,6 +93,7 @@ This app is a standard Next.js App Router application. Deployment checklist:
 4. Set `AUTH_SECRET` to a securely generated random string (e.g. `openssl rand -base64 32`).
 5. Reset the admin password before exposing the system to real users.
 6. `RESEND_API_KEY` and `EMAIL_FROM` must be configured for agreement/invite emails to send.
+7. Configure all three `JIRA_*` variables before enabling global feedback in production.
 
 The app does not self-seed in production — seed is a manual one-time step.
 
