@@ -4,6 +4,14 @@ All notable changes to the Sugar & Leather Vendor Portal are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project uses [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] - 2026-09-10
+
+### Changed
+- Updated Next.js to 16.3.3 and Vitest to 5.0.0, along with grouped Babel, browser compatibility data, js-yaml, nanoid, sharp, and their transitive dependencies.
+
+### Fixed
+- Restored DOM matcher types for component tests after the Vitest 5 upgrade, including synchronous, negated, and asynchronous assertions, so production builds pass type checking.
+
 ## [0.4.0] - 2026-08-13
 
 ### Added
