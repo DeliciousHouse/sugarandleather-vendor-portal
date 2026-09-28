@@ -47,3 +47,20 @@ jobs:
 
       - name: Verify
         run: npm run verify
+
+  container:
+    name: Container smoke (no deploy)
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build exact source image locally
+        run: docker build --build-arg SOURCE_REVISION="$GITHUB_SHA" --tag vendor-portal-ci .
+
+      - name: Check immutable readback and HTTP surfaces
+        run: bash scripts/check-container.sh vendor-portal-ci "$GITHUB_SHA"

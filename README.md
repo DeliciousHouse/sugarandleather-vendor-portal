@@ -85,17 +85,15 @@ Re-running seed is idempotent for tiers and products. The admin user is upserted
 
 ## Deployment
 
-This app is a standard Next.js App Router application. Deployment checklist:
+See the [deployment staging and rollback runbook](docs/deployment.md). CI builds
+and smokes a non-root Docker image with build-time SHA readback at `/api/version`;
+it does not publish or deploy it. No canonical production origin or live artifact
+has been established yet.
 
-1. Set all required env vars in the deployment environment. Do not copy `.env` files.
-2. Run `npx prisma migrate deploy` before starting the app.
-3. Run `npm run prisma:seed` once after the first deploy to create tiers and the admin account.
-4. Set `AUTH_SECRET` to a securely generated random string (e.g. `openssl rand -base64 32`).
-5. Reset the admin password before exposing the system to real users.
-6. `RESEND_API_KEY` and `EMAIL_FROM` must be configured for agreement/invite emails to send.
-7. Configure all three `JIRA_*` variables before enabling global feedback in production.
-
-The app does not self-seed in production — seed is a manual one-time step.
+Production remains gated on approved host/proxy/DNS/runtime configuration, a
+database migration baseline (not currently tracked), and production session
+issuance (password sign-in is not implemented). The image does not migrate or
+self-seed. Do not expose it by enabling the local auth bypass.
 
 ## Architecture
 
