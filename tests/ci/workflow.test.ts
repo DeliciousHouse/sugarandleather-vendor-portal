@@ -70,6 +70,20 @@ function assertCanonicalQualityContract(candidate: string) {
 }
 
 describe("CI workflow", () => {
+  it("smokes the exact source container after quality without publishing or deploying", () => {
+    const document = parse(workflow);
+    const container = document.jobs.container;
+    expect(container.needs).toBe("quality");
+    expect(container["runs-on"]).toBe("ubuntu-latest");
+    expect(container.steps.filter((step: { run?: string }) => step.run).map(
+      (step: { run: string }) => step.run,
+    )).toEqual([
+      'docker build --build-arg SOURCE_REVISION="$GITHUB_SHA" --tag vendor-portal-ci .',
+      'bash scripts/check-container.sh vendor-portal-ci "$GITHUB_SHA"',
+    ]);
+    expect(document.permissions).toEqual({ contents: "read" });
+  });
+
   it("runs for every pull request and push to main", () => {
     expect(existsSync(workflowPath)).toBe(true);
     expect(workflow).toMatch(/pull_request:\s*\n\s+branches: \[main\]/);
