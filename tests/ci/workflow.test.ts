@@ -70,6 +70,11 @@ function assertCanonicalQualityContract(candidate: string) {
 }
 
 describe("CI workflow", () => {
+  it("builds the container with Webpack to avoid Turbopack's Google font query failure", () => {
+    const dockerfile = readFileSync(resolve(process.cwd(), "Dockerfile"), "utf8");
+    expect(dockerfile).toContain('RUN BUILD_REVISION="$SOURCE_REVISION" npm run build -- --webpack');
+  });
+
   it("smokes the exact source container after quality without publishing or deploying", () => {
     const document = parse(workflow);
     const container = document.jobs.container;

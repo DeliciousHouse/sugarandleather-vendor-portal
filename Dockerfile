@@ -10,7 +10,8 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 ARG SOURCE_REVISION
 RUN node -e 'if (!/^[a-f0-9]{40}$/.test(process.env.SOURCE_REVISION || "")) process.exit(1)'
-RUN BUILD_REVISION="$SOURCE_REVISION" npm run build
+# Next 16.3.8 Turbopack fails resolving generated Google font queries in this image.
+RUN BUILD_REVISION="$SOURCE_REVISION" npm run build -- --webpack
 
 FROM base AS runtime
 WORKDIR /app
