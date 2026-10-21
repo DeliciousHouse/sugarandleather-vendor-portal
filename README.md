@@ -26,7 +26,7 @@ All variables are documented in `.env.example`. Required for the app to start:
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | Postgres connection string |
-| `APP_URL` | Public base URL (used in emails) |
+| `APP_URL` | Public base URL (used in emails); production: `https://partners.deliciouswines.org` |
 | `AUTH_SECRET` | Session signing secret — minimum 32 characters |
 | `SEED_ADMIN_EMAIL` | Email for the initial admin account created by seed |
 | `SEED_ADMIN_NAME` | Display name for the initial admin account |

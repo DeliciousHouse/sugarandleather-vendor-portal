@@ -4,6 +4,11 @@ All notable changes to the Sugar & Leather Vendor Portal are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Documented the canonical hostname as `partners.deliciouswines.org` (deployment runbook, `.env.example`, README); no code or runtime default changed.
+
 ## [0.4.1] - 2026-09-10
 
 ### Changed

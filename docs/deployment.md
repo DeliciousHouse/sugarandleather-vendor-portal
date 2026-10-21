@@ -2,8 +2,10 @@
 
 Status: repository staging only, not a production deployment record. The owner
 approved a Docker deployment behind the existing Caddy proxy, using the same
-GHCR/exact-source-image approach as Aries. No canonical origin has been registered
-here yet. Do not guess a hostname or treat CI as proof of a live deployment.
+GHCR/exact-source-image approach as Aries. The owner has designated the canonical
+hostname `partners.deliciouswines.org` (a one-level subdomain covered by the existing
+`*.deliciouswines.org` wildcard A record; it needs only a Caddy block). It is not yet
+live: do not treat CI as proof of a live deployment.
 
 ## What this repository now verifies
 
@@ -44,7 +46,8 @@ Dev-lead owns the remaining decisions; the host operator executes only after the
 scope and rollback have been approved. Use only owner-controlled accounts, not
 former organization accounts or copied application data.
 
-1. Record the exact approved HTTPS origin, DNS change, Caddy upstream address/port,
+1. Record the approved HTTPS origin (`https://partners.deliciouswines.org`, no DNS change
+   needed), Caddy upstream address/port,
    host deployment directory, and restricted runner/registry authorization. No
    self-hosted runner may execute pull-request code. This PR adds no deploy trigger.
 2. Provision an isolated, owner-controlled Postgres database and protected runtime
